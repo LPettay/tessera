@@ -12,13 +12,14 @@ Framework source. Everything that ships in the `tessera-engine` package lives un
 
 ### Subdirectories
 
-*(none yet — `src/` is a placeholder until v0.1 implementation lands)*
+| Dir | AGENTS.md | Purpose |
+|---|---|---|
+| `core/` | [`core/AGENTS.md`](./core/AGENTS.md) | Engine — scene description types and renderer contract. **Vanilla TS, zero runtime deps, no React.** |
 
 ### Planned (not yet created)
 
 | Dir | Purpose | Tracked in |
 |---|---|---|
-| `core/` | Engine — scene model, entity system, animation, page-citizenship layer. **Vanilla TS, zero runtime deps, no React.** | ADR 0006 |
 | `renderers/svg/` | Tier 1 — SVG renderer (v0.1) | ADR 0005, `docs/architecture.md` |
 | `renderers/canvas2d/` | Tier 2 — Canvas2D renderer (v0.2) | ADR 0005 |
 | `renderers/webgl2/` | Tier 3 — WebGL2 renderer with transform-feedback particle sim (v0.3) | ADR 0005 |
@@ -43,8 +44,8 @@ Renderers depend on core. The React adapter depends on core. Core depends on not
 
 ## Status
 
-`src/` is currently empty (only `index.ts` as a placeholder). The first real code lands in v0.1: a SVG renderer + scene model + one entity + page-citizenship layer + the MotionPitch coffee-mug example.
+v0.1 in progress. Scene description types and renderer contract land in the first PR (`feat/v0.1-scene-model`). The SVG renderer, page-citizenship layer, and MotionPitch coffee-mug example follow in subsequent PRs.
 
 ---
 
-<!-- last-reviewed: c01ed48 -->
+<!-- last-reviewed: 9f81cf4 -->
