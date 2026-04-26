@@ -19,6 +19,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0008-renderer-owns-loop-mount-returns-controller.md` | Renderers own their animation loop; `mount()` returns a `RendererController` |
 | `0009-svg-renderer-vanilla-dom.md` | SVG renderer (Tier 1, v0.1) ships with vanilla DOM + RAF — no `framer-motion`, no `motion-one` |
 | `0010-page-citizenship-as-controller-wrapper.md` | `withPageCitizenship(inner, container)` — wrapper-function shape for the page-citizenship layer; sticky reduced-motion |
+| `0011-examples-directory-and-dev-server.md` | `examples/<name>/` directory layout + `Bun.serve` + `Bun.build` dev-server pattern; examples consume the public API only |
 
 When you add an ADR, add a row above and bump the number sequentially.
 
@@ -49,4 +50,4 @@ When you add an ADR, add a row above and bump the number sequentially.
 
 ---
 
-<!-- last-reviewed: 2a93c31 -->
+<!-- last-reviewed: 70957f3 -->
