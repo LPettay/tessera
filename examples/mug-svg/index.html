@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Tessera — Coffee Mug (SVG · Tier 1)</title>
+    <title>Tessera — Coffee Shop (SVG · Tier 1)</title>
     <style>
       :root {
         color-scheme: dark;
@@ -12,67 +12,64 @@
       body {
         margin: 0;
         padding: 0;
-        min-height: 100vh;
+        height: 100vh;
         background: #0a0a0a;
         color: #e7e5e4;
         font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        overflow: hidden;
       }
-      main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        gap: 1.5rem;
-        padding: 2rem;
+      #scene {
+        position: fixed;
+        inset: 0;
       }
       #scene svg {
+        width: 100vw;
+        height: 100vh;
         display: block;
-        width: min(100%, 480px);
-        height: auto;
       }
-      h1 {
+      .brand {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        z-index: 2;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+      }
+      .brand h1 {
         margin: 0;
-        font-size: clamp(1.5rem, 4vw, 2.25rem);
+        font-size: 1.25rem;
         font-weight: 600;
         letter-spacing: -0.02em;
       }
-      p {
-        margin: 0;
-        max-width: 36rem;
-        text-align: center;
-        line-height: 1.6;
+      .brand p {
+        margin: 0.15rem 0 0;
         color: #a8a29e;
-      }
-      code {
-        background: #1f1d1b;
-        padding: 0.1em 0.35em;
-        border-radius: 0.25em;
-        font-size: 0.9em;
+        font-size: 0.85rem;
       }
       .hint {
-        margin-top: 2rem;
-        font-size: 0.85rem;
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 2;
+        max-width: 16rem;
+        text-align: right;
+        font-size: 0.75rem;
         color: #57534e;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
       }
     </style>
   </head>
   <body>
-    <main>
-      <div id="scene"></div>
-      <h1>Tessera v0.1 · coffee mug</h1>
-      <p>
-        One <code>Scene</code>, one <code>Layer</code>, one
-        <code>Entity</code> with a <code>voxel-sprite</code> shape and an
-        <code>oscillate</code> animation. Rendered through the SVG renderer
-        (Tier 1) and wrapped with <code>withPageCitizenship</code> — scroll
-        away or switch tabs to see the loop pause.
-      </p>
-      <div class="hint">
-        Try toggling <em>prefers-reduced-motion</em> in your OS — the mug
-        should freeze.
-      </div>
-    </main>
-    <script type="module" src="/main.js"></script>
+    <div id="scene"></div>
+    <div class="brand">
+      <h1>Tessera</h1>
+      <p>v0.1 · coffee shop scene · SVG renderer</p>
+    </div>
+    <p class="hint">
+      Sunburst spins (Z-axis) · mug rotates (Y-axis). Switch tabs or scroll
+      away to pause; reduced-motion freezes everything.
+    </p>
   </body>
+  <script type="module" src="/main.js"></script>
 </html>

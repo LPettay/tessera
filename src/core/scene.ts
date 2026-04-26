@@ -113,24 +113,52 @@ export type VoxelSpriteCell = {
 };
 
 /**
- * Declarative animation applied to an entity.
+ * Declarative animation applied to an entity. Tagged union — discriminate
+ * by `kind`.
  *
- * v0.1 supports only `oscillate` — the MotionPitch mug Y-rotation pattern.
- * Other animation kinds (translate, fade, sequence, keyframes) land in
- * later milestones.
+ * v0.1 ships two kinds:
+ *  - `oscillate` — sine-eased back-and-forth rotation (the MotionPitch
+ *    mug Y-rotation pattern).
+ *  - `spin` — continuous rotation at a constant rate (suitable for
+ *    background elements like a slowly-rotating sunburst).
+ *
+ * More kinds (translate, fade, keyframes, sequences) land in later
+ * milestones. Adding a new kind is an additive, non-breaking change at
+ * the type level — but exhaustive consumer code must add a branch.
  */
-export type Animation = {
+export type Animation = OscillateAnimation | SpinAnimation;
+
+/**
+ * Sine-eased back-and-forth rotation.
+ *
+ * v0.1 SVG renderer animates only `axis: "y"` (faux-3D); "x" and "z" are
+ * reserved in the type but no-op in the SVG tier. Higher tiers may
+ * implement them.
+ */
+export type OscillateAnimation = {
   kind: "oscillate";
-  /**
-   * Rotation axis. v0.1 visually supports only "y" (faux-3D Y-rotation, the
-   * mug case); "x" and "z" are reserved in the type but renderers may not
-   * implement them yet.
-   */
   axis: "x" | "y" | "z";
-  /** Amplitude in degrees. The animation oscillates between -degrees and +degrees. */
+  /** Amplitude in degrees. Rotation oscillates between `-degrees` and `+degrees`. */
   degrees: number;
   /** One full oscillation period in milliseconds. */
   durationMs: number;
-  /** Iteration count: a positive integer or "infinite". */
+  /** Iteration count: a positive integer or `"infinite"`. */
   repeat: number | "infinite";
+};
+
+/**
+ * Continuous rotation at a constant rate.
+ *
+ * v0.1 SVG renderer animates only `axis: "z"` (in-plane rotation). "x"
+ * and "y" are reserved in the type but no-op in the SVG tier.
+ */
+export type SpinAnimation = {
+  kind: "spin";
+  axis: "x" | "y" | "z";
+  /** Time for one full revolution in milliseconds. */
+  durationMs: number;
+  /** Rotation direction. `cw` = clockwise, `ccw` = counter-clockwise. */
+  direction: "cw" | "ccw";
+  /** Iteration count: a positive integer or `"infinite"`. Defaults to `"infinite"`. */
+  repeat?: number | "infinite";
 };

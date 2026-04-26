@@ -2,10 +2,11 @@ import type { Entity, Layer, Scene } from "../../core/scene.ts";
 import type { Renderer, RendererController } from "../../core/renderer.ts";
 import {
   SVG_NS,
-  applyOscillation,
+  applyAnimation,
   buildCell,
   buildVoxelCell,
   centroid,
+  periodLimitFor,
   unionPixelSize,
 } from "./svg-helpers.ts";
 import type { EntityRuntime } from "./svg-helpers.ts";
@@ -104,7 +105,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       translate,
       animation: entity.animation,
       startedAt: 0,
-      periodLimit: entity.animation.repeat === "infinite" ? null : entity.animation.repeat,
+      periodLimit: periodLimitFor(entity.animation),
     };
     return { group, animated };
   }
@@ -123,7 +124,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
         continue;
       }
       anyAlive = true;
-      applyOscillation(e, elapsed);
+      applyAnimation(e, elapsed);
     }
 
     // Once every entity has finished its repeat count, let the loop go dormant
