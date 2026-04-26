@@ -31,3 +31,7 @@ Living documentation for Tessera. Read these before making structural decisions.
 ## ADR format
 
 Files in `decisions/` are numbered: `0001-...`, `0002-...`. Each is short (under a screen). Required sections: Status, Context, Decision, Consequences. Optional: Alternatives considered. See [`decisions/0000-template.md`](./decisions/0000-template.md).
+
+---
+
+<!-- last-reviewed: c01ed48 -->

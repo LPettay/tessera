@@ -43,3 +43,7 @@ When you add an ADR, add a row above and bump the number sequentially.
 - Internal refactors
 - Style tweaks
 - Adding tests
+
+---
+
+<!-- last-reviewed: c01ed48 -->

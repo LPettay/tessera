@@ -31,3 +31,7 @@ Helper modules used by the check and stamp scripts. Pure functions, stdlib only.
 2. Wire into `../check.ts`: add to the `ALL` const and the dispatch.
 3. Document it in `../AGENTS.md` and here.
 4. Add the human-readable explanation to `CONTRIBUTING.md` under the Enforcement section.
+
+---
+
+<!-- last-reviewed: c01ed48 -->

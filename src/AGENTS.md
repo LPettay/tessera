@@ -44,3 +44,7 @@ Renderers depend on core. The React adapter depends on core. Core depends on not
 ## Status
 
 `src/` is currently empty (only `index.ts` as a placeholder). The first real code lands in v0.1: a SVG renderer + scene model + one entity + page-citizenship layer + the MotionPitch coffee-mug example.
+
+---
+
+<!-- last-reviewed: c01ed48 -->

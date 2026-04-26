@@ -124,3 +124,7 @@ Decisions you can make autonomously:
 - Internal refactors that don't change behavior
 - Adding tests
 - Documentation improvements
+
+---
+
+<!-- last-reviewed: c01ed48 -->

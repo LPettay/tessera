@@ -38,3 +38,7 @@ Repo-hygiene tooling. **Not** product code. These scripts enforce the convention
 - Product runtime code → `src/`
 - Documentation → `docs/`
 - CI workflow files → `.github/workflows/`
+
+---
+
+<!-- last-reviewed: c01ed48 -->
