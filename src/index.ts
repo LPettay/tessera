@@ -26,3 +26,5 @@ export type {
   RendererController,
   RendererTier,
 } from "./core/renderer.ts";
+
+export { withPageCitizenship } from "./core/page-citizenship.ts";
