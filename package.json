@@ -1,0 +1,29 @@
+{
+  "name": "tessera-engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript framework for layered 2D voxel scenes. Pluggable renderer (SVG / Canvas2D / WebGL2), dynamic entities, page-citizenship defaults.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "scripts": {
+    "check": "bun run scripts/check.ts",
+    "check:agents": "bun run scripts/check.ts --only=presence,freshness",
+    "check:fs": "bun run scripts/check.ts --only=forbidden",
+    "typecheck": "bunx tsc --noEmit",
+    "agents:stamp": "bun run scripts/stamp.ts",
+    "agents:stamp-all": "bun run scripts/stamp.ts --all",
+    "agents:stale": "bun run scripts/check.ts --only=freshness --verbose",
+    "wt:add": "bun run scripts/worktree.ts add",
+    "wt:list": "bun run scripts/worktree.ts list",
+    "wt:remove": "bun run scripts/worktree.ts remove",
+    "prepare": "bunx lefthook install || true"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "lefthook": "^1.7.0",
+    "typescript": "^5.5.0"
+  }
+}
