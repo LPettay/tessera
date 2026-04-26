@@ -19,6 +19,7 @@
     "wt:add": "bun run scripts/worktree.ts add",
     "wt:list": "bun run scripts/worktree.ts list",
     "wt:remove": "bun run scripts/worktree.ts remove",
+    "dev:mug": "bun run examples/mug-svg/dev.ts",
     "prepare": "bunx lefthook install || true"
   },
   "devDependencies": {

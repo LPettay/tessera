@@ -5,7 +5,7 @@
 
 export const config = {
   /** Directories that must contain an AGENTS.md if they contain other files. */
-  agentsRequiredRoots: ["src", "docs", "scripts"] as const,
+  agentsRequiredRoots: ["src", "docs", "scripts", "examples"] as const,
 
   /** Subpaths to skip entirely when walking. */
   ignoreDirs: new Set([

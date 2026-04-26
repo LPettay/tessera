@@ -15,9 +15,12 @@ Every `AGENTS.md` in the repo, with its purpose.
 ├── AGENTS.md                            ← you are here (constraints, scope, agent workflow)
 ├── docs/AGENTS.md                       Architecture + ADR conventions
 │   └── decisions/AGENTS.md              ADR format + when to write one
+├── examples/AGENTS.md                   Demo scenes consuming the public API
+│   └── mug-svg/AGENTS.md                MotionPitch coffee mug — v0.1 regression test
 ├── scripts/AGENTS.md                    Repo-hygiene scripts (check, stamp, worktree)
 │   └── lib/AGENTS.md                    Check helper modules
-└── src/AGENTS.md                        Framework source root (placeholder until v0.1)
+└── src/AGENTS.md                        Framework source — core/ types, renderers/svg/
+    └── core/AGENTS.md                   Engine core — vanilla TS, no React
 ```
 
 ---
@@ -28,7 +31,7 @@ Every `AGENTS.md` in the repo, with its purpose.
 
 **The wedge:** the same scene description renders from a 30-rect SVG marketing hero up to a million-particle WebGL2 sim — no userland rewrites.
 
-**Status:** pre-alpha (v0). The framework's actual code does not yet exist; `src/` is a placeholder. This repo currently contains the dev substrate only.
+**Status:** pre-alpha (v0.1 in progress). Scene model, renderer contract, the SVG renderer (Tier 1), and the page-citizenship wrapper are merged. The MotionPitch coffee mug ships in `examples/mug-svg/` as the v0.1 regression test. Higher renderer tiers and the auto-selecting `mount()` factory follow in subsequent milestones.
 
 ---
 
@@ -100,7 +103,7 @@ Every `AGENTS.md` carries an **Index** section with up to three sub-tables — i
 
 Five layers stop bad commits. `bun run check` reports everything and tells you how to fix it.
 
-- **AGENTS.md is mandatory** for every directory under `src/`, `docs/`, `scripts/` that contains files.
+- **AGENTS.md is mandatory** for every directory under `src/`, `docs/`, `scripts/`, `examples/` that contains files.
 - **AGENTS.md goes stale** after >5 non-AGENTS file changes in its directory since the last stamp. Re-stamp with `bun run agents:stamp <path>`.
 - **No `package-lock.json` / `yarn.lock` / `pnpm-lock.yaml`** — bun only.
 - **No committed `.env*` files**.
@@ -127,4 +130,4 @@ Decisions you can make autonomously:
 
 ---
 
-<!-- last-reviewed: c01ed48 -->
+<!-- last-reviewed: 70957f3 -->
