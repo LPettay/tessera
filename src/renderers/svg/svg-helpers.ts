@@ -1,4 +1,11 @@
-import type { Animation, Cell, Layer, VoxelSpriteCell } from "../../core/scene.ts";
+import type {
+  Animation,
+  Cell,
+  Layer,
+  OscillateAnimation,
+  SpinAnimation,
+  VoxelSpriteCell,
+} from "../../core/scene.ts";
 
 /**
  * Pure helpers for the SVG renderer. Split out so svg-renderer.ts can stay
@@ -41,15 +48,46 @@ export function buildVoxelCell(cell: VoxelSpriteCell, cellSize: number): SVGRect
   return rect;
 }
 
-export function applyOscillation(e: EntityRuntime, elapsed: number): void {
-  const { axis, degrees, durationMs } = e.animation;
+export function applyAnimation(e: EntityRuntime, elapsed: number): void {
+  switch (e.animation.kind) {
+    case "oscillate":
+      applyOscillate(e, elapsed, e.animation);
+      return;
+    case "spin":
+      applySpin(e, elapsed, e.animation);
+      return;
+  }
+}
+
+function applyOscillate(e: EntityRuntime, elapsed: number, anim: OscillateAnimation): void {
   // x and z are reserved at the type level; v0.1 SVG only animates y.
-  if (axis !== "y") {
+  if (anim.axis !== "y") {
     e.group.style.transform = e.translate;
     return;
   }
-  const angle = degrees * Math.sin((2 * Math.PI * elapsed) / durationMs);
+  const angle = anim.degrees * Math.sin((2 * Math.PI * elapsed) / anim.durationMs);
   e.group.style.transform = `${e.translate} rotate3d(0, 1, 0, ${angle}deg)`;
+}
+
+function applySpin(e: EntityRuntime, elapsed: number, anim: SpinAnimation): void {
+  // x and y are reserved at the type level; v0.1 SVG only animates z (in-plane rotation).
+  if (anim.axis !== "z") {
+    e.group.style.transform = e.translate;
+    return;
+  }
+  const sign = anim.direction === "ccw" ? -1 : 1;
+  const angle = sign * 360 * (elapsed / anim.durationMs);
+  e.group.style.transform = `${e.translate} rotate(${angle}deg)`;
+}
+
+/** Iteration limit derived from animation kind. `null` = run forever. */
+export function periodLimitFor(animation: Animation): number | null {
+  if (animation.kind === "oscillate") {
+    return animation.repeat === "infinite" ? null : animation.repeat;
+  }
+  // spin: repeat is optional and defaults to infinite.
+  const repeat = animation.repeat ?? "infinite";
+  return repeat === "infinite" ? null : repeat;
 }
 
 export function unionPixelSize(layers: Layer[]): { width: number; height: number } {
