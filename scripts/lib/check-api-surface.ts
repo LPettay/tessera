@@ -79,12 +79,14 @@ function extractExportNames(source: string): string[] {
   const names = new Set<string>();
 
   // export { a, b as c, d } from "..."  OR  export { a, b }
-  const braceRe = /export\s*\{([^}]*)\}/g;
+  // OR  export type { a, b } from "..."  OR  export { type a, b as c }
+  const braceRe = /export(?:\s+type)?\s*\{([^}]*)\}/g;
   for (let m: RegExpExecArray | null; (m = braceRe.exec(source)); ) {
     const inner = m[1];
     if (!inner) continue;
     for (const piece of inner.split(",")) {
-      const trimmed = piece.trim();
+      // Strip a leading inline `type` keyword (e.g. `type Foo` in `export { type Foo }`).
+      const trimmed = piece.trim().replace(/^type\s+/, "");
       if (!trimmed) continue;
       const asMatch = /\bas\s+([A-Za-z_$][\w$]*)/.exec(trimmed);
       const name = asMatch ? asMatch[1] : trimmed.split(/\s+/)[0];

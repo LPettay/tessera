@@ -16,6 +16,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0005-three-tier-renderer-with-page-citizenship.md` | Pluggable SVG/Canvas2D/WebGL2 renderer + page-citizenship layer |
 | `0006-vanilla-core-react-adapter.md` | Vanilla TS core + thin React adapter (no React in `src/core/`) |
 | `0007-public-api-surface-contract.md` | `src/index.ts` re-exports are the public API; changes require an ADR |
+| `0008-renderer-owns-loop-mount-returns-controller.md` | Renderers own their animation loop; `mount()` returns a `RendererController` |
 
 When you add an ADR, add a row above and bump the number sequentially.
 
@@ -46,4 +47,4 @@ When you add an ADR, add a row above and bump the number sequentially.
 
 ---
 
-<!-- last-reviewed: c01ed48 -->
+<!-- last-reviewed: 9f81cf4 -->
