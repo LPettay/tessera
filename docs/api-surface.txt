@@ -9,4 +9,5 @@ RendererController
 RendererTier
 Scene
 VoxelSpriteCell
+svgRenderer
 withPageCitizenship

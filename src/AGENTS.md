@@ -15,12 +15,12 @@ Framework source. Everything that ships in the `tessera-engine` package lives un
 | Dir | AGENTS.md | Purpose |
 |---|---|---|
 | `core/` | [`core/AGENTS.md`](./core/AGENTS.md) | Engine — scene description types and renderer contract. **Vanilla TS, zero runtime deps, no React.** |
+| `renderers/` | [`renderers/AGENTS.md`](./renderers/AGENTS.md) | Renderer adapters. Each tier is independently shippable and depends only on `core/`. |
 
 ### Planned (not yet created)
 
 | Dir | Purpose | Tracked in |
 |---|---|---|
-| `renderers/svg/` | Tier 1 — SVG renderer (v0.1) | ADR 0005, `docs/architecture.md` |
 | `renderers/canvas2d/` | Tier 2 — Canvas2D renderer (v0.2) | ADR 0005 |
 | `renderers/webgl2/` | Tier 3 — WebGL2 renderer with transform-feedback particle sim (v0.3) | ADR 0005 |
 | `adapters/react/` | React adapter — `<TesseraScene />` + hooks. **Thin wrapper over the imperative core.** | ADR 0006 |
@@ -48,4 +48,4 @@ v0.1 in progress. Scene description types and renderer contract land in the firs
 
 ---
 
-<!-- last-reviewed: 9f81cf4 -->
+<!-- last-reviewed: 2a93c31 -->
