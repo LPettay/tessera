@@ -5,9 +5,9 @@
  * Changes here require an ADR and an update to docs/api-surface.txt;
  * see docs/decisions/0007-public-api-surface-contract.md.
  *
- * v0.1 surface: scene description types + renderer contract. Renderer
- * implementations and the auto-selecting `mount()` factory are added in
- * subsequent PRs.
+ * v0.1 surface: scene description types + renderer contract + the SVG
+ * renderer (Tier 1) + the page-citizenship wrapper. Higher renderer tiers
+ * and the auto-selecting `mount()` factory land in subsequent milestones.
  */
 
 export type {
@@ -28,3 +28,4 @@ export type {
 } from "./core/renderer.ts";
 
 export { withPageCitizenship } from "./core/page-citizenship.ts";
+export { svgRenderer } from "./renderers/svg/index.ts";
