@@ -83,12 +83,28 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
     const group = document.createElementNS(SVG_NS, "g");
     group.setAttribute("class", "tessera-entity");
     group.setAttribute("id", `tessera-entity-${entity.id}`);
+
     const tx = entity.position.x * cellSize;
     const ty = entity.position.y * cellSize;
-    const translate = `translate(${tx}px, ${ty}px)`;
-    group.style.transform = translate;
-    // transform-box=view-box is required so pixel-based transform-origin is
-    // interpreted in viewBox coordinates, not the rendered bounding box.
+    const pivot = entity.shape.pivot ?? centroid(entity.shape.cells);
+    const px = pivot.x * cellSize;
+    const py = pivot.y * cellSize;
+
+    // The transform composes as:
+    //   translate(tx+px, ty+py)  rotate(...)  translate(-px, -py)
+    //
+    // Read inside-out: shift entity-local coords by -pivot, rotate around the
+    // origin, then translate the rotated pivot to its target viewBox point.
+    // The pivot is the only point that survives unchanged through rotation.
+    //
+    // transform-origin must be "0 0" — any non-zero origin re-introduces the
+    // double-translate bug that plagued earlier versions.
+    const pivotedTranslate = `translate(${tx + px}px, ${ty + py}px)`;
+    const cellOffset = px !== 0 || py !== 0 ? ` translate(${-px}px, ${-py}px)` : "";
+    const baseTransform = `${pivotedTranslate}${cellOffset}`;
+
+    group.style.transform = baseTransform;
+    group.style.transformOrigin = "0 0";
     group.style.transformBox = "view-box";
 
     for (const cell of entity.shape.cells) {
@@ -97,12 +113,11 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
 
     if (!entity.animation) return { group, animated: null };
 
-    const pivot = entity.shape.pivot ?? centroid(entity.shape.cells);
-    group.style.transformOrigin = `${tx + pivot.x * cellSize}px ${ty + pivot.y * cellSize}px`;
-
     const animated: EntityRuntime = {
       group,
-      translate,
+      pivotedTranslate,
+      cellOffset,
+      baseTransform,
       animation: entity.animation,
       startedAt: 0,
       periodLimit: periodLimitFor(entity.animation),
@@ -120,7 +135,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       const elapsed = now - e.startedAt;
 
       if (e.periodLimit !== null && elapsed / e.animation.durationMs >= e.periodLimit) {
-        e.group.style.transform = e.translate;
+        e.group.style.transform = e.baseTransform;
         continue;
       }
       anyAlive = true;
