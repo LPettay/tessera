@@ -17,8 +17,22 @@ export const SVG_NS = "http://www.w3.org/2000/svg";
 export type EntityRuntime = {
   /** The entity's `<g>`, used as the rotation/translate target every frame. */
   group: SVGGElement;
-  /** Cached translation so we can compose rotation without re-reading DOM. */
-  translate: string;
+  /**
+   * `translate(tx+px, ty+py)` — moves the rotated pivot to its viewBox spot.
+   * Always the first transform component when rotation is applied.
+   */
+  pivotedTranslate: string;
+  /**
+   * `translate(-px, -py)` — undoes the pivot offset for entity-local cells.
+   * Empty string when the pivot coincides with the entity origin.
+   */
+  cellOffset: string;
+  /**
+   * `pivotedTranslate + cellOffset` — the transform with no rotation. Used as
+   * the resting state and as the fallback when an animation kind is reserved
+   * but not yet implemented in this tier.
+   */
+  baseTransform: string;
   animation: Animation;
   /** Wallclock at first paint of this animation; resets across pause/resume. */
   startedAt: number;
@@ -62,22 +76,22 @@ export function applyAnimation(e: EntityRuntime, elapsed: number): void {
 function applyOscillate(e: EntityRuntime, elapsed: number, anim: OscillateAnimation): void {
   // x and z are reserved at the type level; v0.1 SVG only animates y.
   if (anim.axis !== "y") {
-    e.group.style.transform = e.translate;
+    e.group.style.transform = e.baseTransform;
     return;
   }
   const angle = anim.degrees * Math.sin((2 * Math.PI * elapsed) / anim.durationMs);
-  e.group.style.transform = `${e.translate} rotate3d(0, 1, 0, ${angle}deg)`;
+  e.group.style.transform = `${e.pivotedTranslate} rotate3d(0, 1, 0, ${angle}deg)${e.cellOffset}`;
 }
 
 function applySpin(e: EntityRuntime, elapsed: number, anim: SpinAnimation): void {
   // x and y are reserved at the type level; v0.1 SVG only animates z (in-plane rotation).
   if (anim.axis !== "z") {
-    e.group.style.transform = e.translate;
+    e.group.style.transform = e.baseTransform;
     return;
   }
   const sign = anim.direction === "ccw" ? -1 : 1;
   const angle = sign * 360 * (elapsed / anim.durationMs);
-  e.group.style.transform = `${e.translate} rotate(${angle}deg)`;
+  e.group.style.transform = `${e.pivotedTranslate} rotate(${angle}deg)${e.cellOffset}`;
 }
 
 /** Iteration limit derived from animation kind. `null` = run forever. */
