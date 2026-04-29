@@ -23,11 +23,15 @@ import type {
  */
 export type SunburstConfig = {
   palette: {
-    /** Brightest color, at the center of the gradient. */
-    center: string;
-    /** Darkest color, at the edge of the gradient. */
-    edge: string;
-    /** Color of the rotating ray overlay. */
+    /**
+     * Gradient stops from center (t=0) to edge (t=1). At least two stops
+     * required; sort order doesn't matter (the generator sorts by `t`).
+     * Multi-stop allows real sunset gradients (yellow → orange → red →
+     * purple) — straight-line lerp from a single center+edge pair muddies
+     * the middle to brown.
+     */
+    stops: { t: number; color: string }[];
+    /** Color of the rotating ray overlay (the "sun"). */
     ray: string;
   };
   /** Number of rays in the rotating overlay. Try 8, 12, or 16. */
@@ -35,12 +39,12 @@ export type SunburstConfig = {
   /** Length of each ray in cells, measured from center. */
   rayLength: number;
   /**
-   * Width of each ray in cells, perpendicular to its direction. Vector
-   * rasterization stamps a band this many cells wide along the line. `1`
-   * gives clean single-cell rays (axis-aligned at every angle); `3` gives
-   * chunky bars; default `3`.
+   * Width at the BASE of each ray (the far end), in cells. Rays are
+   * rendered as tapered wedges that meet at the center (width 1) and
+   * widen to `rayBaseWidth` at the tip — classic sun-ray flare shape.
+   * Default `8`.
    */
-  rayThickness?: number;
+  rayBaseWidth?: number;
   /**
    * Number of distinct color bands in the gradient (center → edge).
    * Higher = smoother; lower = more "intentionally voxel". Default 6.
@@ -79,6 +83,7 @@ function buildGradientCells(
   const maxDist = Math.hypot(cx, cy);
   const bands = Math.max(1, config.bands ?? 6);
   const jitter = Math.max(0, config.bandJitter ?? 0.5);
+  const stops = sortedStops(config.palette.stops);
 
   const out: Cell[] = [];
   for (let y = 0; y < height; y++) {
@@ -91,14 +96,34 @@ function buildGradientCells(
       const t = clamp01(baseT + offset);
       const band = Math.min(bands - 1, Math.floor(t * bands));
       const banded = bands === 1 ? 0 : band / (bands - 1);
-      out.push({
-        x,
-        y,
-        fill: lerpColor(config.palette.center, config.palette.edge, banded),
-      });
+      out.push({ x, y, fill: evalGradient(stops, banded) });
     }
   }
   return out;
+}
+
+function sortedStops(
+  stops: { t: number; color: string }[],
+): { t: number; color: string }[] {
+  if (stops.length < 2) {
+    throw new Error("sunburstGenerator: palette.stops must have at least 2 entries");
+  }
+  return stops.slice().sort((a, b) => a.t - b.t);
+}
+
+function evalGradient(stops: { t: number; color: string }[], t: number): string {
+  if (t <= stops[0]!.t) return stops[0]!.color;
+  if (t >= stops[stops.length - 1]!.t) return stops[stops.length - 1]!.color;
+  for (let i = 0; i < stops.length - 1; i++) {
+    const a = stops[i]!;
+    const b = stops[i + 1]!;
+    if (t <= b.t) {
+      const span = b.t - a.t;
+      const localT = span === 0 ? 0 : (t - a.t) / span;
+      return lerpColor(a.color, b.color, localT);
+    }
+  }
+  return stops[stops.length - 1]!.color;
 }
 
 function buildRayEntities(
@@ -107,18 +132,18 @@ function buildRayEntities(
 ): Entity[] {
   if (config.rays < 1 || config.rayLength < 1) return [];
 
-  const thickness = Math.max(1, config.rayThickness ?? 3);
+  const baseWidth = Math.max(1, config.rayBaseWidth ?? 8);
   const segments: VectorSegment[] = [];
   for (let r = 0; r < config.rays; r++) {
     const angle = (r * 2 * Math.PI) / config.rays;
     segments.push({
-      kind: "line",
-      from: { x: 0, y: 0 },
-      to: {
+      kind: "wedge",
+      apex: { x: 0, y: 0 },
+      baseCenter: {
         x: Math.cos(angle) * config.rayLength,
         y: Math.sin(angle) * config.rayLength,
       },
-      thickness,
+      baseWidth,
       fill: config.palette.ray,
     });
   }

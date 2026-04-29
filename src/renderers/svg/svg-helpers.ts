@@ -165,9 +165,15 @@ function rasterizeAndPaint(e: VectorEntityRuntime, angleRad: number): void {
   const sinA = Math.sin(angleRad);
   const out = new Map<string, { x: number; y: number; fill: string }>();
   for (const seg of e.segments) {
-    const from = rotateAround(seg.from, e.pivot, cosA, sinA);
-    const to = rotateAround(seg.to, e.pivot, cosA, sinA);
-    rasterizeLine(from, to, seg.thickness, seg.fill, out);
+    if (seg.kind === "line") {
+      const from = rotateAround(seg.from, e.pivot, cosA, sinA);
+      const to = rotateAround(seg.to, e.pivot, cosA, sinA);
+      rasterizeLine(from, to, seg.thickness, seg.fill, out);
+    } else {
+      const apex = rotateAround(seg.apex, e.pivot, cosA, sinA);
+      const baseCenter = rotateAround(seg.baseCenter, e.pivot, cosA, sinA);
+      rasterizeWedge(apex, baseCenter, seg.baseWidth, seg.fill, out);
+    }
   }
   // Replace entity contents in one pass.
   while (e.group.firstChild) e.group.removeChild(e.group.firstChild);
@@ -226,6 +232,49 @@ export function rasterizeLine(
     const a = i / steps;
     const cx = from.x + dx * a;
     const cy = from.y + dy * a;
+    for (let w = startW; w <= endW; w++) {
+      const x = Math.round(cx + perpX * w);
+      const y = Math.round(cy + perpY * w);
+      const key = `${x},${y}`;
+      if (!out.has(key)) out.set(key, { x, y, fill });
+    }
+  }
+}
+
+/**
+ * Rasterize a tapered wedge — width 1 at `apex`, linearly widening to
+ * `baseWidth` cells at `baseCenter`. Walks the centerline at half-cell
+ * resolution, stamping a band whose width grows with t. Output cells
+ * are deduped via the provided Map keyed on `"x,y"`.
+ *
+ * Coordinates are in cell units (fractional allowed). Rounded to integer
+ * positions on stamp.
+ */
+export function rasterizeWedge(
+  apex: { x: number; y: number },
+  baseCenter: { x: number; y: number },
+  baseWidth: number,
+  fill: string,
+  out: Map<string, { x: number; y: number; fill: string }>,
+): void {
+  const dx = baseCenter.x - apex.x;
+  const dy = baseCenter.y - apex.y;
+  const len = Math.hypot(dx, dy);
+  if (len === 0) return;
+
+  const steps = Math.max(1, Math.ceil(len * 2));
+  const perpX = -dy / len;
+  const perpY = dx / len;
+  const targetW = Math.max(1, Math.floor(baseWidth));
+
+  for (let i = 0; i <= steps; i++) {
+    const a = i / steps; // 0 at apex, 1 at base
+    const cx = apex.x + dx * a;
+    const cy = apex.y + dy * a;
+    // Width at this position: linear from 1 (apex) to baseWidth (base).
+    const widthAt = Math.max(1, Math.round(1 + (targetW - 1) * a));
+    const startW = -Math.floor((widthAt - 1) / 2);
+    const endW = Math.ceil((widthAt - 1) / 2);
     for (let w = startW; w <= endW; w++) {
       const x = Math.round(cx + perpX * w);
       const y = Math.round(cy + perpY * w);

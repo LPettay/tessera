@@ -19,6 +19,8 @@ export type {
   Entity,
   EntityShape,
   VectorSegment,
+  LineSegment,
+  WedgeSegment,
   VoxelSpriteCell,
   Animation,
 } from "./core/scene.ts";

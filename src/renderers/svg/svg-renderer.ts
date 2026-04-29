@@ -9,6 +9,7 @@ import {
   centroid,
   periodLimitFor,
   rasterizeLine,
+  rasterizeWedge,
   unionPixelSize,
 } from "./svg-helpers.ts";
 import type { EntityRuntime } from "./svg-helpers.ts";
@@ -164,7 +165,11 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
     // is correct even before the animation loop starts.
     const initial = new Map<string, { x: number; y: number; fill: string }>();
     for (const seg of entity.shape.segments) {
-      rasterizeLine(seg.from, seg.to, seg.thickness, seg.fill, initial);
+      if (seg.kind === "line") {
+        rasterizeLine(seg.from, seg.to, seg.thickness, seg.fill, initial);
+      } else {
+        rasterizeWedge(seg.apex, seg.baseCenter, seg.baseWidth, seg.fill, initial);
+      }
     }
     for (const cell of initial.values()) {
       group.appendChild(buildCell(cell, cellSize));

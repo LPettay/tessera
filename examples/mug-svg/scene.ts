@@ -19,14 +19,28 @@ const LAYER = { width: 100, height: 56, cellSize: 12 };
 
 const sunburstConfig: SunburstConfig = {
   palette: {
-    center: "#8b5e3c",
-    edge: "#0a0a0a",
-    ray: "#c89060",
+    // The radial gradient is the ATMOSPHERE — sunset colors. Multi-stop
+    // because two-color RGB lerp turns yellow→purple into mud-brown in the
+    // middle; staged stops let us hit golden, orange, crimson, indigo as
+    // distinct bands while still feeling continuous.
+    stops: [
+      { t: 0.0, color: "#fff2c2" }, // bright halo right at the sun
+      { t: 0.2, color: "#ffd166" }, // golden
+      { t: 0.45, color: "#f57350" }, // warm orange
+      { t: 0.65, color: "#a83a5e" }, // crimson dusk
+      { t: 0.85, color: "#3a1a55" }, // deep purple twilight
+      { t: 1.0, color: "#0a0a26" }, // night sky at the edges
+    ],
+    // The rays ARE the sun — bright cream-white, brighter than any
+    // gradient stop so they read as light, not foreground decoration.
+    ray: "#fffaef",
   },
-  rays: 12,
-  rayLength: 26,
-  rayThickness: 3,
-  bands: 7,
+  rays: 14,
+  // Long enough that wedge tips run off-screen — gives the "rays filling
+  // the sky" effect, no visible blunt ends.
+  rayLength: 70,
+  rayBaseWidth: 10,
+  bands: 9,
   bandJitter: 0.5,
   rotationMs: 24000,
   rotationDirection: "ccw",
