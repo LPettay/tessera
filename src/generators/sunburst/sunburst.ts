@@ -33,6 +33,14 @@ export type SunburstConfig = {
   /** Length of each ray in cells, measured from center. */
   rayLength: number;
   /**
+   * Half-width of each ray in cells, measured perpendicular to its direction.
+   *  - `0` → single-cell rays (jaggy diagonals — looks like spiderweb)
+   *  - `1` → 3-cell wide (recommended baseline)
+   *  - `2` → 5-cell wide (chunky)
+   * Default `1`.
+   */
+  rayHalfWidth?: number;
+  /**
    * Number of distinct color bands in the gradient (center → edge).
    * Higher = smoother; lower = more "intentionally voxel". Default 6.
    */
@@ -88,17 +96,30 @@ function buildRayEntities(
 ): Entity[] {
   if (config.rays < 1 || config.rayLength < 1) return [];
 
+  const halfWidth = Math.max(0, config.rayHalfWidth ?? 1);
   const cells: VoxelSpriteCell[] = [];
+  // Dedupe cells that round to the same (x, y). Adjacent rays + perpendicular
+  // stamps can land on the same cell; emitting duplicate rects is wasted work.
+  const seen = new Set<string>();
+
   for (let r = 0; r < config.rays; r++) {
     const angle = (r * 2 * Math.PI) / config.rays;
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
+    // Perpendicular to the ray direction (rotate 90°): used to thicken the
+    // ray by emitting cells off-axis. Without this, diagonals staircase into
+    // single-cell lines and read as spiderweb.
+    const perpX = -sinA;
+    const perpY = cosA;
     for (let i = 1; i <= config.rayLength; i++) {
-      cells.push({
-        x: Math.round(cosA * i),
-        y: Math.round(sinA * i),
-        fill: config.palette.ray,
-      });
+      for (let w = -halfWidth; w <= halfWidth; w++) {
+        const x = Math.round(cosA * i + perpX * w);
+        const y = Math.round(sinA * i + perpY * w);
+        const key = `${x},${y}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        cells.push({ x, y, fill: config.palette.ray });
+      }
     }
   }
 
