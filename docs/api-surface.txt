@@ -6,11 +6,16 @@ EntityShape
 GeneratorGeometry
 GeneratorOutput
 Layer
+LineSegment
 Renderer
 RendererCapabilities
 RendererController
 RendererTier
 Scene
+SunburstConfig
+VectorSegment
 VoxelSpriteCell
+WedgeSegment
+sunburstGenerator
 svgRenderer
 withPageCitizenship

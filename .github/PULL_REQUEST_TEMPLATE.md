@@ -23,9 +23,26 @@ incomplete tasks.
 - [ ] **Public API addition** — non-breaking; ADR included in this PR; `docs/api-surface.txt` updated
 - [ ] **Public API breaking change** — ADR + version bump notes included; targets a major release
 
-## Screenshots / clips
+## Screenshots / clips — before & after
 
-<!-- Required for any UI / animation change. Drag-drop a screen recording or PNG. Delete this section for non-UI PRs. -->
+<!--
+Required for any UI / animation / rendering change.
+
+Commit screenshots to docs/screenshots/ as adr-NNNN-*.png (or pr-NNN-*.png
+if no ADR), then embed them here. Capture BOTH before and after at matched
+timestamps so rotation / motion stages correspond. See CONTRIBUTING.md
+("Visual evidence for visual changes") and docs/screenshots/AGENTS.md.
+
+Delete this section for non-UI PRs.
+-->
+
+**Before:**
+
+<!-- ![before-1](../docs/screenshots/adr-NNNN-before-...png) -->
+
+**After:**
+
+<!-- ![after-1](../docs/screenshots/adr-NNNN-after-...png) -->
 
 ## Checklist
 
@@ -35,3 +52,4 @@ incomplete tasks.
 - [ ] Updated relevant `AGENTS.md` if I changed structure or conventions in that directory
 - [ ] Logged an ADR in `docs/decisions/` if this was a structural decision or an API surface change
 - [ ] Working in a dedicated worktree (`bun run wt:add`) if any other agent session is active
+- [ ] If visual: before/after screenshots committed to `docs/screenshots/` and embedded above

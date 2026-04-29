@@ -83,21 +83,72 @@ export type Entity = {
 };
 
 /**
- * The visual representation of an entity.
+ * The visual representation of an entity. Tagged union — discriminate by `kind`.
  *
- * v0.1 supports `voxel-sprite` (a small cell-grid that IS the entity — the
- * MotionPitch coffee mug uses this shape). More shapes land later: raster
- * sprites (post-v0.1), vector paths, sprite-stack slabs (v0.3).
+ * - `voxel-sprite`: a fixed grid of cells. Animation transforms apply to the
+ *   entire group (CSS transform on the entity's `<g>`). At non-cardinal
+ *   rotation angles, individual cells become tilted parallelograms — fine for
+ *   small rotations and oscillation, bad for in-plane spin.
+ * - `vector`: a list of continuous segments. The renderer rasterizes the
+ *   segments onto the cell grid PER FRAME, applying animation transforms to
+ *   segment endpoints first. Cells stay axis-aligned at every angle — true
+ *   pixel-art rotation. Slightly more CPU per frame but visually correct.
+ *   See ADR 0014.
  */
-export type EntityShape = {
-  kind: "voxel-sprite";
-  /** Cells of the sprite, in entity-local cell coordinates (origin top-left). */
-  cells: VoxelSpriteCell[];
-  /**
-   * Center of rotation/anchor in entity-local cell coordinates.
-   * When omitted, defaults to the centroid of `cells`.
-   */
-  pivot?: { x: number; y: number };
+export type EntityShape =
+  | {
+      kind: "voxel-sprite";
+      /** Cells of the sprite, in entity-local cell coordinates (origin top-left). */
+      cells: VoxelSpriteCell[];
+      /**
+       * Center of rotation/anchor in entity-local cell coordinates.
+       * When omitted, defaults to the centroid of `cells`.
+       */
+      pivot?: { x: number; y: number };
+    }
+  | {
+      kind: "vector";
+      /** Continuous segments composing the shape. */
+      segments: VectorSegment[];
+      /**
+       * Center of rotation in entity-local cell coordinates. Defaults to
+       * `(0, 0)` — segments are typically authored with origin as the pivot.
+       */
+      pivot?: { x: number; y: number };
+    };
+
+/**
+ * A drawable segment within a `vector` shape. Tagged union — discriminate
+ * by `kind`. All coordinates are in entity-local cell units (fractional
+ * allowed); the renderer rasterizes each segment to axis-aligned cells.
+ *
+ * - `line`: constant-thickness band from `from` to `to`.
+ * - `wedge`: tapered band that widens from `apex` (single cell) to a base
+ *   `baseWidth` cells across at `baseCenter`. Useful for "rays of light"
+ *   that meet at a single point and widen toward the page border.
+ */
+export type VectorSegment = LineSegment | WedgeSegment;
+
+export type LineSegment = {
+  kind: "line";
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  /** Width of the rasterized band in cells. Must be ≥ 1. */
+  thickness: number;
+  /** Solid fill color, hex string. */
+  fill: string;
+};
+
+export type WedgeSegment = {
+  kind: "wedge";
+  /** Narrow end. Width here is implicitly 1 cell. */
+  apex: { x: number; y: number };
+  /** Wide end (centerline). */
+  baseCenter: { x: number; y: number };
+  /** Width at `baseCenter`, in cells. Linearly interpolated from apex (1) to base. */
+  baseWidth: number;
+  /** Solid fill color, hex string. */
+  fill: string;
 };
 
 /**
