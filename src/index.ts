@@ -5,9 +5,11 @@
  * Changes here require an ADR and an update to docs/api-surface.txt;
  * see docs/decisions/0007-public-api-surface-contract.md.
  *
- * v0.1 surface: scene description types + renderer contract + the SVG
- * renderer (Tier 1) + the page-citizenship wrapper. Higher renderer tiers
- * and the auto-selecting `mount()` factory land in subsequent milestones.
+ * v0.1: scene description types + renderer contract + SVG renderer (Tier 1)
+ * + page-citizenship wrapper.
+ * v0.2: `BackgroundGenerator<Config>` primitive — pure functions that emit
+ * cells + entities for layer fills. Concrete generators ship in subsequent
+ * PRs; this PR lands only the contract.
  */
 
 export type {
@@ -26,6 +28,12 @@ export type {
   RendererController,
   RendererTier,
 } from "./core/renderer.ts";
+
+export type {
+  BackgroundGenerator,
+  GeneratorGeometry,
+  GeneratorOutput,
+} from "./core/generator.ts";
 
 export { withPageCitizenship } from "./core/page-citizenship.ts";
 export { svgRenderer } from "./renderers/svg/index.ts";

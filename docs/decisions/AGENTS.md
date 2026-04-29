@@ -21,6 +21,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0010-page-citizenship-as-controller-wrapper.md` | `withPageCitizenship(inner, container)` — wrapper-function shape for the page-citizenship layer; sticky reduced-motion |
 | `0011-examples-directory-and-dev-server.md` | `examples/<name>/` directory layout + `Bun.serve` + `Bun.build` dev-server pattern; examples consume the public API only |
 | `0012-animation-spin-kind.md` | Extend `Animation` union with `spin` kind for continuous rotation; SVG tier animates `axis: "z"` only |
+| `0013-background-generator-primitive.md` | `BackgroundGenerator<Config>` primitive — pure function returning cells + entities for a layer fill |
 
 When you add an ADR, add a row above and bump the number sequentially.
 
@@ -51,4 +52,4 @@ When you add an ADR, add a row above and bump the number sequentially.
 
 ---
 
-<!-- last-reviewed: 68c5dc0 -->
+<!-- last-reviewed: e5415c7 -->

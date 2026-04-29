@@ -11,6 +11,7 @@ Engine core. **Vanilla TypeScript, zero runtime dependencies, no React, no DOM-o
 | `scene.ts` | Scene description language — `Scene`, `Layer`, `Cell`, `Entity`, `EntityShape`, `VoxelSpriteCell`, `Animation`. Pure data types, no behavior. |
 | `renderer.ts` | Renderer contract — `Renderer`, `RendererCapabilities`, `RendererController`, `RendererTier`. The interface every renderer tier implements. |
 | `page-citizenship.ts` | `withPageCitizenship(inner, container)` — wraps a `RendererController` so it auto-pauses on IntersectionObserver / `visibilitychange` / `prefers-reduced-motion`. See ADR 0010. |
+| `generator.ts` | `BackgroundGenerator<Config>` primitive — pure function `(config, geometry) → { cells, entities }` for hand-crafted layer-fill templates. See ADR 0013. |
 
 ### Planned (not yet created)
 
@@ -38,4 +39,4 @@ Tests for `src/core/` must run in Node without a DOM. If a test needs DOM, the c
 
 ---
 
-<!-- last-reviewed: 9f81cf4 -->
+<!-- last-reviewed: e5415c7 -->

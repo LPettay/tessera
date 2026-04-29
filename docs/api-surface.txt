@@ -1,7 +1,10 @@
 Animation
+BackgroundGenerator
 Cell
 Entity
 EntityShape
+GeneratorGeometry
+GeneratorOutput
 Layer
 Renderer
 RendererCapabilities
