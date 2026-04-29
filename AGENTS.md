@@ -31,7 +31,7 @@ Every `AGENTS.md` in the repo, with its purpose.
 
 **The wedge:** the same scene description renders from a 30-rect SVG marketing hero up to a million-particle WebGL2 sim — no userland rewrites.
 
-**Status:** pre-alpha (v0.1 in progress). Scene model, renderer contract, the SVG renderer (Tier 1), and the page-citizenship wrapper are merged. The MotionPitch coffee mug ships in `examples/mug-svg/` as the v0.1 regression test. Higher renderer tiers and the auto-selecting `mount()` factory follow in subsequent milestones.
+**Status:** pre-alpha (v0.2 in progress). v0.1 shipped: scene model, renderer contract, SVG renderer (Tier 1), page-citizenship wrapper, both `Animation` kinds (`oscillate` + `spin`), MotionPitch coffee mug regression test. v0.2 adds the `BackgroundGenerator<Config>` primitive (ADR 0013) and ships at least two concrete generators (sunburst + halftone) so the demo becomes a *prompt-driven full-screen voxel scene* rather than a centered rotating shape.
 
 ---
 
@@ -50,32 +50,32 @@ Every `AGENTS.md` in the repo, with its purpose.
 
 ---
 
-## Definition of "done" for v0.1
+## Definition of "done" for v0.2
 
 The framework can:
-1. Render a fixed 2D voxel scene with one layer of cells (SVG renderer).
-2. Place a single dynamic entity at a cell position with a Y-axis oscillation animation.
-3. Pause when scrolled offscreen via IntersectionObserver.
-4. Honor `prefers-reduced-motion`.
+1. Define a `BackgroundGenerator<Config>` — a pure function `(config, geometry) → { cells, entities }`.
+2. Ship at least two concrete generators producing visually distinct full-screen voxel scenes (sunburst + halftone).
+3. Demo a *preset switcher* that lets a user flip between configs and see the rendered scene change live.
+4. Deploy the demo to GitHub Pages.
 
-The MotionPitch coffee-mug ports as the first example and is the v0.1 regression test.
+v0.1 (already shipped): scene model, renderer contract, SVG renderer (Tier 1), page-citizenship wrapper, `oscillate` + `spin` Animation kinds, MotionPitch coffee-mug regression test.
 
 ---
 
 ## Anti-scope-creep firewall (milestone-scoped)
 
-These are **out of scope for v0.1** — not banned forever, banned for this milestone. Each is tagged with the milestone where it lands.
+These are **out of scope for v0.2** — not banned forever, banned for this milestone. Each is tagged with the milestone where it lands.
 
-- Canvas2D renderer → v0.2
-- Multi-layer scenes → v0.2
-- WebGL2 renderer → v0.3
-- Sprite-stack rendering primitives → v0.3
-- Particle systems → v0.3 / v0.4
+- Canvas2D renderer → v0.3
+- LLM bridge for generator configs (prompt → Config via Gemini/etc.) → v0.3
+- WebGL2 renderer → post-v0.3
+- Sprite-stack rendering primitives → post-v0.3
+- Particle systems → post-v0.3
 - Editor / scene file format → post-v1
 - WebGPU renderer → post-v1
 - Vue / Solid / web-components adapters → post-v1
 
-If a contributor (human or AI) proposes one of these for v0.1, redirect to the milestone where it belongs.
+If a contributor (human or AI) proposes one of these for v0.2, redirect to the milestone where it belongs.
 
 ---
 
@@ -130,4 +130,4 @@ Decisions you can make autonomously:
 
 ---
 
-<!-- last-reviewed: 70957f3 -->
+<!-- last-reviewed: e5415c7 -->
