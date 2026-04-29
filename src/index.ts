@@ -37,3 +37,6 @@ export type {
 
 export { withPageCitizenship } from "./core/page-citizenship.ts";
 export { svgRenderer } from "./renderers/svg/index.ts";
+
+export { sunburstGenerator } from "./generators/sunburst/index.ts";
+export type { SunburstConfig } from "./generators/sunburst/index.ts";
