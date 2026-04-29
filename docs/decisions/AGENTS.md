@@ -23,6 +23,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0012-animation-spin-kind.md` | Extend `Animation` union with `spin` kind for continuous rotation; SVG tier animates `axis: "z"` only |
 | `0013-background-generator-primitive.md` | `BackgroundGenerator<Config>` primitive — pure function returning cells + entities for a layer fill |
 | `0014-vector-shape-rasterizer.md` | `vector` `EntityShape` kind — segments rotated in cell-space and rasterized to axis-aligned cells per frame (pixel-locked rotation) |
+| `0015-gh-pages-deploy.md` | Deploy `dist/` (built by `bun run build:examples`) to GitHub Pages via Actions workflow; URL `https://lpettay.github.io/tessera/` |
 
 When you add an ADR, add a row above and bump the number sequentially.
 

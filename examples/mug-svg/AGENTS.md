@@ -12,6 +12,7 @@ The MotionPitch coffee shop, ported to Tessera primitives. **v0.1 regression tes
 | `main.ts` | Browser entry — mounts `svgRenderer` on `#scene`, wraps with `withPageCitizenship`, sets full-viewport `preserveAspectRatio`. |
 | `index.html` | Static page that hosts the demo. Full-bleed SVG; tiny brand label in the corner. |
 | `dev.ts` | `Bun.serve` dev server — bundles `main.ts` on demand via `Bun.build`. Run via `bun run dev:mug`. |
+| `build.ts` | Static build — produces `dist/index.html` + `dist/main.js` for GitHub Pages. Same `Bun.build` options as `dev.ts`. Run via `bun run build:mug`. |
 
 ## Rules
 
