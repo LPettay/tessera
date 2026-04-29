@@ -4,6 +4,21 @@
 
 Accepted — 2026-04-29
 
+## Visual evidence
+
+**Before** — `voxel-sprite` shape with CSS `transform: rotate(angle)` on the entity group. Cardinal rays render cleanly; diagonal rays stair-step into jagged "spider-web" lines because the cells themselves are tilted off the grid:
+
+![voxel-sprite spin at non-cardinal angle](../screenshots/adr-0014-before-voxel-sprite-spin.png)
+![voxel-sprite spin at a different non-cardinal angle](../screenshots/adr-0014-before-voxel-sprite-spin-2.png)
+
+**After** — `vector` shape rasterized to axis-aligned cells per frame. Every ray is a consistent 3-cell-wide bar at every rotation angle:
+
+![vector rays at ~60°](../screenshots/adr-0014-rays-at-60deg.png)
+![vector rays at ~156°](../screenshots/adr-0014-rays-at-156deg.png)
+![vector rays at ~204°](../screenshots/adr-0014-rays-at-204deg.png)
+
+Captured at matched elapsed times (before: `feat/v0.2-vector-shape-rasterizer~`; after: this branch) so the rotation angles correspond.
+
 ## Context
 
 The SVG renderer applies CSS `transform: rotate(angle)` to an animated entity's `<g>`. Every child `<rect>` rotates with the group — at non-cardinal angles, individual cells render as tilted parallelograms instead of axis-aligned squares. The pixel art aesthetic depends on cells being axis-aligned; tilting them produces stair-stepped, blob-shaped output that reads as "spiderweb" or "broken pixel ladders" rather than as coherent shapes.

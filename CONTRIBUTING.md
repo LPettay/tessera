@@ -115,6 +115,21 @@ We squash-merge so `main` history stays one-commit-per-PR. Conventional Commit t
 
 ---
 
+## Visual evidence for visual changes
+
+PRs that touch rendering, examples, or anything user-visible must include **before/after screenshots** when the visual output differs in any non-trivial way. Write descriptions are weak evidence; screenshots are strong.
+
+Conventions:
+
+- Commit screenshots to `docs/screenshots/` with the naming pattern `adr-NNNN-<short-description>.png` (or `pr-NNN-<short-description>.png` if no ADR is involved). See [`docs/screenshots/AGENTS.md`](./docs/screenshots/AGENTS.md).
+- Reference them from **both** the ADR (durable) and the PR description (review surface).
+- For animated changes, capture multiple frames at matched timestamps so before/after rotations or motion stages correspond.
+- Keep individual files under ~50KB; crop to the relevant region.
+
+Why durable: GitHub PR descriptions accept drag-drop images, but those URLs are PR-scoped and harder to find later. ADRs in the repo are the long-term record of *why* we did things; embedding visual evidence next to the rationale keeps the two together.
+
+---
+
 ## API surface contract
 
 The public API is everything re-exported from `src/index.ts`. Changes to that file:
