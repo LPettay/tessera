@@ -30,13 +30,13 @@ const HORIZON_Y = 30; // row index where sky ends and ground begins
 
 const sunburstConfig: SunburstConfig = {
   palette: {
-    center: "#ff8a3a", // setting-sun amber at the horizon
-    edge: "#0c1424", // deep navy at the top of the sky
-    ray: "#ffd87a", // bright cream-gold rays
+    center: "#ffd166", // warm yellow sun
+    edge: "#1e3a5f", // deep blue sky at the top edge
+    ray: "#fff5b0", // bright cream-yellow rays
   },
   rays: 12,
   rayLength: 26,
-  rayHalfWidth: 1, // 3-cell wide rays (no longer spiderweb)
+  rayHalfWidth: 1,
   bands: 7,
   rotationMs: 24000,
   rotationDirection: "ccw",
@@ -72,15 +72,13 @@ const skyLayer: Layer = {
 
 // --- Ground (voxel grass) --- //
 
-const GRASS_GLOW = "#a8825a"; // sunset-tinted grass at the horizon
-const GRASS_HORIZON = "#6b8a3e"; // bright green near the horizon
-const GRASS_MID = "#3d5a26"; // mid-field
-const GRASS_DEEP = "#22381a"; // foreground
-const GRASS_HIGHLIGHT = "#c8b46a"; // sparse warm tufts catching the sun
+const GRASS_GLOW = "#5a8266"; // cool teal-tinted grass at the horizon (catches the blue sky)
+const GRASS_LIGHT = "#3d6033"; // brighter green
+const GRASS_DARK = "#1f3a1a"; // darker green
+const GRASS_TUFT = "#7ea84a"; // rare brighter tufts (very sparse)
 
 /**
- * Hash → [0, 1). Same trick as the sunburst dither, inlined to keep the
- * example self-contained.
+ * Hash → [0, 1). Inlined so the example stays self-contained.
  */
 function noise(x: number, y: number): number {
   let h = (x * 374761393 + y * 668265263) | 0;
@@ -96,33 +94,27 @@ function buildGroundCells(): Cell[] {
   for (let y = HORIZON_Y; y < LAYER.height; y++) {
     const depthT = (y - HORIZON_Y) / Math.max(1, groundRows - 1); // 0 at horizon, 1 at bottom
     for (let x = 0; x < LAYER.width; x++) {
-      const n = noise(x, y);
+      // Per-cell hash drives the rare events (glow / tufts); patches use a
+      // lower-resolution hash so cells cluster into 4×4 blocks of similar
+      // tone rather than per-cell static.
+      const cellN = noise(x, y);
+      const blockN = noise(Math.floor(x / 4), Math.floor(y / 4));
 
-      // Topmost two rows: mix in sunset glow with falling probability so
-      // the horizon line dissolves into the field rather than cutting hard.
-      if (depthT < 0.1 && n < 0.7) {
+      // Sunset/horizon-glow row — cool teal where sky meets ground.
+      if (depthT < 0.07 && cellN < 0.55) {
         out.push({ x, y, fill: GRASS_GLOW });
         continue;
       }
 
-      // Sparse warm highlights scattered everywhere — tufts catching light.
-      if (n > 0.96) {
-        out.push({ x, y, fill: GRASS_HIGHLIGHT });
+      // Rare warm tufts (~1% of cells).
+      if (cellN > 0.99) {
+        out.push({ x, y, fill: GRASS_TUFT });
         continue;
       }
 
-      // Three depth bands selected by depthT, but within each band the
-      // pick is hash-jittered. Replaces the rigid (x+y)%2 stipple with
-      // an organic, patchy texture.
-      let fill: string;
-      const pick = n + depthT * 0.4; // depth biases pick toward the darker tone
-      if (pick < 0.4) {
-        fill = depthT < 0.4 ? GRASS_HORIZON : GRASS_MID;
-      } else if (pick < 0.75) {
-        fill = depthT < 0.5 ? GRASS_MID : GRASS_DEEP;
-      } else {
-        fill = GRASS_DEEP;
-      }
+      // Two-tone field with depth-biased pick. Blocks of 4×4 share a base
+      // hash so the pattern reads as patches, not noise.
+      const fill = blockN + depthT * 0.6 < 0.55 ? GRASS_LIGHT : GRASS_DARK;
       out.push({ x, y, fill });
     }
   }
