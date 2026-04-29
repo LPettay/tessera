@@ -11,7 +11,9 @@ RendererCapabilities
 RendererController
 RendererTier
 Scene
+SunburstConfig
 VectorSegment
 VoxelSpriteCell
+sunburstGenerator
 svgRenderer
 withPageCitizenship
