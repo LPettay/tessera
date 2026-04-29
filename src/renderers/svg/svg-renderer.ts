@@ -3,10 +3,12 @@ import type { Renderer, RendererController } from "../../core/renderer.ts";
 import {
   SVG_NS,
   applyAnimation,
+  applyNeutral,
   buildCell,
   buildVoxelCell,
   centroid,
   periodLimitFor,
+  rasterizeLine,
   unionPixelSize,
 } from "./svg-helpers.ts";
 import type { EntityRuntime } from "./svg-helpers.ts";
@@ -84,21 +86,33 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
     group.setAttribute("class", "tessera-entity");
     group.setAttribute("id", `tessera-entity-${entity.id}`);
 
+    if (entity.shape.kind === "vector") {
+      return buildVectorEntity(group, entity, cellSize);
+    }
+    return buildVoxelEntity(group, entity, cellSize);
+  }
+
+  function buildVoxelEntity(
+    group: SVGGElement,
+    entity: Entity,
+    cellSize: number,
+  ): { group: SVGGElement; animated: EntityRuntime | null } {
+    if (entity.shape.kind !== "voxel-sprite") {
+      throw new Error("buildVoxelEntity: expected voxel-sprite shape");
+    }
+
     const tx = entity.position.x * cellSize;
     const ty = entity.position.y * cellSize;
     const pivot = entity.shape.pivot ?? centroid(entity.shape.cells);
     const px = pivot.x * cellSize;
     const py = pivot.y * cellSize;
 
-    // The transform composes as:
+    // Transform composes as:
     //   translate(tx+px, ty+py)  rotate(...)  translate(-px, -py)
-    //
-    // Read inside-out: shift entity-local coords by -pivot, rotate around the
-    // origin, then translate the rotated pivot to its target viewBox point.
-    // The pivot is the only point that survives unchanged through rotation.
-    //
-    // transform-origin must be "0 0" — any non-zero origin re-introduces the
-    // double-translate bug that plagued earlier versions.
+    // Read inside-out: shift entity-local coords by -pivot, rotate around
+    // the origin, then translate the rotated pivot to its target viewBox
+    // point. transform-origin must be "0 0" — non-zero re-introduces the
+    // double-translate bug. See the v0.1 fix-transform-origin PR.
     const pivotedTranslate = `translate(${tx + px}px, ${ty + py}px)`;
     const cellOffset = px !== 0 || py !== 0 ? ` translate(${-px}px, ${-py}px)` : "";
     const baseTransform = `${pivotedTranslate}${cellOffset}`;
@@ -114,10 +128,56 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
     if (!entity.animation) return { group, animated: null };
 
     const animated: EntityRuntime = {
+      kind: "voxel",
       group,
       pivotedTranslate,
       cellOffset,
       baseTransform,
+      animation: entity.animation,
+      startedAt: 0,
+      periodLimit: periodLimitFor(entity.animation),
+    };
+    return { group, animated };
+  }
+
+  function buildVectorEntity(
+    group: SVGGElement,
+    entity: Entity,
+    cellSize: number,
+  ): { group: SVGGElement; animated: EntityRuntime | null } {
+    if (entity.shape.kind !== "vector") {
+      throw new Error("buildVectorEntity: expected vector shape");
+    }
+
+    const tx = entity.position.x * cellSize;
+    const ty = entity.position.y * cellSize;
+    // Vector entities use ONLY a translate transform on the group. Rotation
+    // is applied to segment endpoints in cell-space and rasterized to
+    // axis-aligned cells per frame — pixels stay locked to the grid (ADR 0014).
+    group.style.transform = `translate(${tx}px, ${ty}px)`;
+    group.style.transformOrigin = "0 0";
+    group.style.transformBox = "view-box";
+
+    const pivot = entity.shape.pivot ?? { x: 0, y: 0 };
+
+    // Seed the entity with its angle-0 rasterization so the first paint
+    // is correct even before the animation loop starts.
+    const initial = new Map<string, { x: number; y: number; fill: string }>();
+    for (const seg of entity.shape.segments) {
+      rasterizeLine(seg.from, seg.to, seg.thickness, seg.fill, initial);
+    }
+    for (const cell of initial.values()) {
+      group.appendChild(buildCell(cell, cellSize));
+    }
+
+    if (!entity.animation) return { group, animated: null };
+
+    const animated: EntityRuntime = {
+      kind: "vector",
+      group,
+      segments: entity.shape.segments,
+      pivot,
+      cellSize,
       animation: entity.animation,
       startedAt: 0,
       periodLimit: periodLimitFor(entity.animation),
@@ -135,7 +195,9 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       const elapsed = now - e.startedAt;
 
       if (e.periodLimit !== null && elapsed / e.animation.durationMs >= e.periodLimit) {
-        e.group.style.transform = e.baseTransform;
+        // Settle the entity into its neutral (no-rotation) state once.
+        // Subsequent ticks won't run because anyAlive stays false.
+        applyNeutral(e);
         continue;
       }
       anyAlive = true;

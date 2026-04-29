@@ -1,4 +1,4 @@
-import type { Scene, VoxelSpriteCell } from "../../src/index.ts";
+import type { Scene, VectorSegment, VoxelSpriteCell } from "../../src/index.ts";
 
 /**
  * Coffee-shop scene — sunburst background spinning on Z, mug rotating
@@ -64,14 +64,15 @@ const mugCells: VoxelSpriteCell[] = [
 ];
 
 /**
- * 12-ray sunburst. Even rays are long + warm; odd rays short + dark.
- * Cells are entity-local with the pivot at (0, 0) so rotation looks like
- * the rays sweep around a fixed center. Rays are computed via
- * round-cell rasterization — adjacent angles may share cells near the
- * hub; that's fine, overlapping rects render the same color.
+ * 12-ray sunburst as `vector` segments — pixel-locked rotation.
+ *
+ * Each ray is a `VectorSegment` line from (0, 0) outward. The renderer
+ * rotates the endpoints in cell-space and rasterizes them per frame to
+ * axis-aligned cells, so every ray stays clean at every angle (no
+ * tilted-cell stair-stepping). See ADR 0014.
  */
-function buildSunburstCells(): VoxelSpriteCell[] {
-  const cells: VoxelSpriteCell[] = [];
+function buildSunburstSegments(): VectorSegment[] {
+  const segments: VectorSegment[] = [];
   const rays = 12;
   const longLen = 22;
   const shortLen = 12;
@@ -79,18 +80,15 @@ function buildSunburstCells(): VoxelSpriteCell[] {
     const angle = (r * 2 * Math.PI) / rays;
     const isLong = r % 2 === 0;
     const length = isLong ? longLen : shortLen;
-    const fill = isLong ? SUNBURST_LONG : SUNBURST_SHORT;
-    const cosA = Math.cos(angle);
-    const sinA = Math.sin(angle);
-    for (let i = 1; i <= length; i++) {
-      cells.push({
-        x: Math.round(cosA * i),
-        y: Math.round(sinA * i),
-        fill,
-      });
-    }
+    segments.push({
+      kind: "line",
+      from: { x: 0, y: 0 },
+      to: { x: Math.cos(angle) * length, y: Math.sin(angle) * length },
+      thickness: 3,
+      fill: isLong ? SUNBURST_LONG : SUNBURST_SHORT,
+    });
   }
-  return cells;
+  return segments;
 }
 
 export const coffeeShopScene: Scene = {
@@ -106,15 +104,16 @@ export const coffeeShopScene: Scene = {
           // Center of the layer.
           position: { x: 50, y: 28 },
           shape: {
-            kind: "voxel-sprite",
+            kind: "vector",
             pivot: { x: 0, y: 0 },
-            cells: buildSunburstCells(),
+            segments: buildSunburstSegments(),
           },
           animation: {
             kind: "spin",
             axis: "z",
             // One full rotation every 30s — slow enough to feel ambient,
-            // not slow enough to feel broken.
+            // not slow enough to feel broken. With vector rasterization,
+            // the rays stay clean at every intermediate angle.
             durationMs: 30000,
             direction: "ccw",
           },

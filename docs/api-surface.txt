@@ -11,6 +11,7 @@ RendererCapabilities
 RendererController
 RendererTier
 Scene
+VectorSegment
 VoxelSpriteCell
 svgRenderer
 withPageCitizenship

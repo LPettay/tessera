@@ -54,9 +54,11 @@ Every `AGENTS.md` in the repo, with its purpose.
 
 The framework can:
 1. Define a `BackgroundGenerator<Config>` — a pure function `(config, geometry) → { cells, entities }`.
-2. Ship at least two concrete generators producing visually distinct full-screen voxel scenes (sunburst + halftone).
-3. Demo a *preset switcher* that lets a user flip between configs and see the rendered scene change live.
-4. Deploy the demo to GitHub Pages.
+2. Render `vector` `EntityShape` kind via per-frame rasterization to axis-aligned cells (pixel-locked rotation; ADR 0014).
+3. Ship at least one concrete generator built on top of those primitives.
+4. Demo a clean rotating sunburst — no spider-leg artifacts at intermediate angles.
+
+v0.2.1+ items (deferred from initial v0.2 scope after the design exploration in closed PR #8): halftone generator, preset switcher demo, GH Pages deploy.
 
 v0.1 (already shipped): scene model, renderer contract, SVG renderer (Tier 1), page-citizenship wrapper, `oscillate` + `spin` Animation kinds, MotionPitch coffee-mug regression test.
 
