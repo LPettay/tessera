@@ -45,6 +45,16 @@ export type SunburstConfig = {
    * Higher = smoother; lower = more "intentionally voxel". Default 6.
    */
   bands?: number;
+  /**
+   * Per-cell jitter added before band quantization, in fractions of one
+   * band-width.
+   *  - `0`   → hard concentric rings (the original look)
+   *  - `0.5` → softly dithered band boundaries (frayed edges, organic)
+   *  - `1`   → mostly noise; bands stop reading
+   * Default `0.5`. Deterministic per (x, y) — re-running the generator
+   * with the same config produces identical output.
+   */
+  bandJitter?: number;
   /** Ms per full ray rotation. Undefined = static rays. */
   rotationMs?: number;
   /** Ray rotation direction. Default `"ccw"`. */
@@ -70,14 +80,17 @@ function buildGradientCells(
   // farthest cell, which is always a corner of the layer rectangle.
   const maxDist = Math.hypot(cx, cy);
   const bands = Math.max(1, config.bands ?? 6);
+  const jitter = Math.max(0, config.bandJitter ?? 0.5);
 
   const out: Cell[] = [];
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const t = clamp01(Math.hypot(x - cx, y - cy) / maxDist);
-      // Quantize into discrete bands. The `(bands - 1)` denominator gives
-      // each band a different color value (otherwise the last band collapses
-      // to t == 1).
+      const baseT = clamp01(Math.hypot(x - cx, y - cy) / maxDist);
+      // Per-cell deterministic offset. Range is [-0.5, +0.5) of one band
+      // width, so cells near a band boundary get a 50/50 shot at either
+      // adjacent band — frayed edges, no ring artifact.
+      const offset = (cellHash(x, y) - 0.5) * (jitter / bands);
+      const t = clamp01(baseT + offset);
       const band = Math.min(bands - 1, Math.floor(t * bands));
       const banded = bands === 1 ? 0 : band / (bands - 1);
       out.push({
@@ -88,6 +101,18 @@ function buildGradientCells(
     }
   }
   return out;
+}
+
+/**
+ * Deterministic hash → [0, 1). Plain integer-mixing PRNG; no allocations,
+ * runs the same in Node and browsers. Used to dither gradient band edges.
+ */
+function cellHash(x: number, y: number): number {
+  let h = (x * 374761393 + y * 668265263) | 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 1274126177) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h / 4294967296;
 }
 
 function buildRayEntities(

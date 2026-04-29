@@ -72,10 +72,23 @@ const skyLayer: Layer = {
 
 // --- Ground (voxel grass) --- //
 
-const GRASS_HORIZON = "#6b8a3e"; // brightest at horizon (catches the sunset)
-const GRASS_MID = "#3d5a26"; // darker mid-field
-const GRASS_DEEP = "#22381a"; // deepest in foreground
-const GRASS_HIGHLIGHT = "#a8c66a"; // sparse warm highlights
+const GRASS_GLOW = "#a8825a"; // sunset-tinted grass at the horizon
+const GRASS_HORIZON = "#6b8a3e"; // bright green near the horizon
+const GRASS_MID = "#3d5a26"; // mid-field
+const GRASS_DEEP = "#22381a"; // foreground
+const GRASS_HIGHLIGHT = "#c8b46a"; // sparse warm tufts catching the sun
+
+/**
+ * Hash → [0, 1). Same trick as the sunburst dither, inlined to keep the
+ * example self-contained.
+ */
+function noise(x: number, y: number): number {
+  let h = (x * 374761393 + y * 668265263) | 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 1274126177) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h / 4294967296;
+}
 
 function buildGroundCells(): Cell[] {
   const out: Cell[] = [];
@@ -83,22 +96,32 @@ function buildGroundCells(): Cell[] {
   for (let y = HORIZON_Y; y < LAYER.height; y++) {
     const depthT = (y - HORIZON_Y) / Math.max(1, groundRows - 1); // 0 at horizon, 1 at bottom
     for (let x = 0; x < LAYER.width; x++) {
-      // Sparse warm highlights — tufts of grass catching the sunset glow.
-      // Pseudo-hash to scatter them deterministically.
-      if ((x * 31 + y * 17) % 53 === 7) {
+      const n = noise(x, y);
+
+      // Topmost two rows: mix in sunset glow with falling probability so
+      // the horizon line dissolves into the field rather than cutting hard.
+      if (depthT < 0.1 && n < 0.7) {
+        out.push({ x, y, fill: GRASS_GLOW });
+        continue;
+      }
+
+      // Sparse warm highlights scattered everywhere — tufts catching light.
+      if (n > 0.96) {
         out.push({ x, y, fill: GRASS_HIGHLIGHT });
         continue;
       }
-      // Three depth bands; within each band, a per-cell stipple between
-      // the two adjacent tones gives the field texture instead of stripes.
-      const stipple = (x + y) % 2 === 0;
+
+      // Three depth bands selected by depthT, but within each band the
+      // pick is hash-jittered. Replaces the rigid (x+y)%2 stipple with
+      // an organic, patchy texture.
       let fill: string;
-      if (depthT < 0.25) {
-        fill = stipple ? GRASS_HORIZON : GRASS_MID;
-      } else if (depthT < 0.65) {
-        fill = stipple ? GRASS_MID : GRASS_DEEP;
+      const pick = n + depthT * 0.4; // depth biases pick toward the darker tone
+      if (pick < 0.4) {
+        fill = depthT < 0.4 ? GRASS_HORIZON : GRASS_MID;
+      } else if (pick < 0.75) {
+        fill = depthT < 0.5 ? GRASS_MID : GRASS_DEEP;
       } else {
-        fill = stipple ? GRASS_DEEP : GRASS_MID;
+        fill = GRASS_DEEP;
       }
       out.push({ x, y, fill });
     }
