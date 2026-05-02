@@ -9,6 +9,7 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 | Dir | AGENTS.md | Purpose |
 |---|---|---|
 | `mug-svg/` | [`mug-svg/AGENTS.md`](./mug-svg/AGENTS.md) | The MotionPitch coffee mug, ported to Tessera primitives. v0.1 regression test for the SVG renderer + page-citizenship surface. |
+| `menu-svg/` | [`menu-svg/AGENTS.md`](./menu-svg/AGENTS.md) | Stylized title-screen scene exercising the v0.2.x non-rotation Animation kinds (`pulse`, `bob`, `fade`, `drift`). |
 
 ### Planned (not yet created)
 
@@ -28,6 +29,7 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 
 ```bash
 bun run dev:mug         # mug-svg example at http://localhost:3000
+bun run dev:menu        # menu-svg example at http://localhost:3001
 ```
 
 Each example registers a top-level script in `package.json` of the form `dev:<example-name>`.
