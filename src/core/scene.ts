@@ -167,17 +167,24 @@ export type VoxelSpriteCell = {
  * Declarative animation applied to an entity. Tagged union — discriminate
  * by `kind`.
  *
- * v0.1 ships two kinds:
- *  - `oscillate` — sine-eased back-and-forth rotation (the MotionPitch
- *    mug Y-rotation pattern).
- *  - `spin` — continuous rotation at a constant rate (suitable for
- *    background elements like a slowly-rotating sunburst).
+ * Two families:
+ *  - Oscillate-family (sine-eased, bounded, `repeat` required):
+ *    `oscillate` (rotate), `pulse` (scale), `bob` (translate-Y), `fade` (opacity).
+ *  - Continuous-family (constant rate, unbounded):
+ *    `spin` (rotate), `drift` (translate).
  *
- * More kinds (translate, fade, keyframes, sequences) land in later
- * milestones. Adding a new kind is an additive, non-breaking change at
- * the type level — but exhaustive consumer code must add a branch.
+ * Composition (multiple animations on one entity) is intentionally not
+ * supported here — that's a future ADR. Today an entity has at most one
+ * animation. Adding a new kind is additive at the type level, but
+ * exhaustive consumer code must add a branch.
  */
-export type Animation = OscillateAnimation | SpinAnimation;
+export type Animation =
+  | OscillateAnimation
+  | SpinAnimation
+  | PulseAnimation
+  | BobAnimation
+  | FadeAnimation
+  | DriftAnimation;
 
 /**
  * Sine-eased back-and-forth rotation.
@@ -212,4 +219,65 @@ export type SpinAnimation = {
   direction: "cw" | "ccw";
   /** Iteration count: a positive integer or `"infinite"`. Defaults to `"infinite"`. */
   repeat?: number | "infinite";
+};
+
+/**
+ * Sine-eased rhythmic scale. The entity scales between `from` and `to`
+ * and back, once per `durationMs`. Asymmetric ranges (e.g. 1 → 1.15)
+ * are common for UI button breathing; symmetric is fine too.
+ */
+export type PulseAnimation = {
+  kind: "pulse";
+  /** Scale at the rest point. Typically 1. */
+  from: number;
+  /** Peak scale. >1 grows, <1 shrinks. */
+  to: number;
+  /** One full pulse period (rest → peak → rest) in ms. */
+  durationMs: number;
+  /** Iteration count: a positive integer or `"infinite"`. */
+  repeat: number | "infinite";
+};
+
+/**
+ * Sine-eased vertical bob — translate-Y oscillation in cell units.
+ * Suitable for idle character bobs, floating menu items.
+ */
+export type BobAnimation = {
+  kind: "bob";
+  /** Vertical travel in cells. Oscillates between -amplitude and +amplitude. */
+  amplitude: number;
+  /** One full bob period in ms. */
+  durationMs: number;
+  /** Iteration count: a positive integer or `"infinite"`. */
+  repeat: number | "infinite";
+};
+
+/**
+ * Sine-eased opacity oscillation between `from` and `to`. For a periodic
+ * fade-in/fade-out cycle. One-shot fades land with a future tween kind.
+ */
+export type FadeAnimation = {
+  kind: "fade";
+  /** Opacity at one extreme, 0..1. */
+  from: number;
+  /** Opacity at the other extreme, 0..1. */
+  to: number;
+  /** One full fade period (from → to → from) in ms. */
+  durationMs: number;
+  /** Iteration count: a positive integer or `"infinite"`. */
+  repeat: number | "infinite";
+};
+
+/**
+ * Continuous linear translation at a constant velocity (cells per second).
+ *
+ * Drift has no `repeat` — linear translation has no natural iteration
+ * boundary, unlike rotation (full revolution) or oscillation (one cycle).
+ * For a one-shot bounded translation, a future tween kind is the right
+ * fit.
+ */
+export type DriftAnimation = {
+  kind: "drift";
+  /** Velocity in cells per second. Direction is encoded in the vector. */
+  velocity: { x: number; y: number };
 };

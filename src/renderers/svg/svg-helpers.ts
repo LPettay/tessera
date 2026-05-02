@@ -1,8 +1,12 @@
 import type {
   Animation,
+  BobAnimation,
   Cell,
+  DriftAnimation,
+  FadeAnimation,
   Layer,
   OscillateAnimation,
+  PulseAnimation,
   SpinAnimation,
   VectorSegment,
   VoxelSpriteCell,
@@ -36,6 +40,8 @@ export type VoxelEntityRuntime = {
   pivotedTranslate: string;
   cellOffset: string;
   baseTransform: string;
+  /** Pixel size of one cell — needed by bob/drift to convert cell amplitude/velocity to px. */
+  cellSize: number;
   animation: Animation;
   startedAt: number;
   periodLimit: number | null;
@@ -50,6 +56,12 @@ export type VectorEntityRuntime = {
   pivot: { x: number; y: number };
   /** Pixel size of one cell in the parent layer. */
   cellSize: number;
+  /**
+   * Base CSS transform applied at build time (entity translate). Non-rotation
+   * animations layer on top of this string; rotation animations don't touch it
+   * (they rasterize per frame instead).
+   */
+  baseTransform: string;
   animation: Animation;
   startedAt: number;
   periodLimit: number | null;
@@ -93,6 +105,18 @@ function applyVoxelAnimation(e: VoxelEntityRuntime, elapsed: number): void {
     case "spin":
       applySpin(e, elapsed, e.animation);
       return;
+    case "pulse":
+      applyPulse(e.group, e.baseTransform, e.animation, elapsed);
+      return;
+    case "bob":
+      applyBob(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
+      return;
+    case "fade":
+      applyFade(e.group, e.animation, elapsed);
+      return;
+    case "drift":
+      applyDrift(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
+      return;
   }
 }
 
@@ -117,29 +141,117 @@ function applySpin(e: VoxelEntityRuntime, elapsed: number, anim: SpinAnimation):
   e.group.style.transform = `${e.pivotedTranslate} rotate(${angle}deg)${e.cellOffset}`;
 }
 
+/**
+ * Sine-eased progress in [0, 1] over a single period — `0.5 * (1 - cos(...))`.
+ * t=0 → 0, t=T/2 → 1, t=T → 0. Shared by pulse/bob/fade.
+ */
+function sineProgress(elapsed: number, durationMs: number): number {
+  return 0.5 * (1 - Math.cos((2 * Math.PI * elapsed) / durationMs));
+}
+
+function applyPulse(
+  group: SVGGElement,
+  baseTransform: string,
+  anim: PulseAnimation,
+  elapsed: number,
+): void {
+  const s = anim.from + (anim.to - anim.from) * sineProgress(elapsed, anim.durationMs);
+  group.style.transform = `${baseTransform} scale(${s})`;
+}
+
+function applyBob(
+  group: SVGGElement,
+  baseTransform: string,
+  anim: BobAnimation,
+  elapsed: number,
+  cellSize: number,
+): void {
+  // True back-and-forth (-amp..+amp), so use sin (not the [0,1] sineProgress helper).
+  const cells = anim.amplitude * Math.sin((2 * Math.PI * elapsed) / anim.durationMs);
+  const px = cells * cellSize;
+  group.style.transform = `${baseTransform} translateY(${px}px)`;
+}
+
+function applyFade(group: SVGGElement, anim: FadeAnimation, elapsed: number): void {
+  const o = anim.from + (anim.to - anim.from) * sineProgress(elapsed, anim.durationMs);
+  group.style.opacity = String(o);
+}
+
+function applyDrift(
+  group: SVGGElement,
+  baseTransform: string,
+  anim: DriftAnimation,
+  elapsed: number,
+  cellSize: number,
+): void {
+  const seconds = elapsed / 1000;
+  const dx = anim.velocity.x * seconds * cellSize;
+  const dy = anim.velocity.y * seconds * cellSize;
+  group.style.transform = `${baseTransform} translate(${dx}px, ${dy}px)`;
+}
+
 function applyVectorAnimation(e: VectorEntityRuntime, elapsed: number): void {
-  // Compute current rotation angle (radians) from the animation. For
-  // vector entities, the angle drives segment-endpoint rotation BEFORE
-  // rasterization, not a CSS transform on the group.
-  const angleRad = currentAngleRad(e.animation, elapsed);
-  rasterizeAndPaint(e, angleRad);
+  // Rotation kinds rasterize per-frame (segments rotated → cells stamped).
+  // Non-rotation kinds (pulse/bob/fade/drift) leave the rasterized cells
+  // alone and apply CSS transform/opacity to the group instead — much
+  // cheaper, and visually equivalent for scale/translate/opacity.
+  switch (e.animation.kind) {
+    case "oscillate":
+    case "spin": {
+      const angleRad = currentAngleRad(e.animation, elapsed);
+      rasterizeAndPaint(e, angleRad);
+      return;
+    }
+    case "pulse":
+      applyPulse(e.group, e.baseTransform, e.animation, elapsed);
+      return;
+    case "bob":
+      applyBob(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
+      return;
+    case "fade":
+      applyFade(e.group, e.animation, elapsed);
+      return;
+    case "drift":
+      applyDrift(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
+      return;
+  }
 }
 
 /**
- * Settle an entity into its no-rotation state. Called once when an
- * animation's period limit expires; voxel entities just reset their CSS
- * transform, vector entities re-rasterize at angle 0.
+ * Settle an entity into its rest state once its animation's period limit
+ * expires. Each kind has a natural rest:
+ *   - rotation kinds (oscillate/spin): no rotation. Voxel resets transform;
+ *     vector re-rasterizes at angle 0.
+ *   - pulse/bob/drift: drop the layered transform back to baseTransform.
+ *   - fade: settle to `from` (one full period returns to `from` anyway).
  */
 export function applyNeutral(e: EntityRuntime): void {
-  if (e.kind === "voxel") {
-    e.group.style.transform = e.baseTransform;
-    return;
+  switch (e.animation.kind) {
+    case "oscillate":
+    case "spin":
+      if (e.kind === "voxel") {
+        e.group.style.transform = e.baseTransform;
+      } else {
+        rasterizeAndPaint(e, 0);
+      }
+      return;
+    case "pulse":
+    case "bob":
+    case "drift":
+      e.group.style.transform = e.baseTransform;
+      return;
+    case "fade":
+      e.group.style.opacity = String(e.animation.from);
+      return;
   }
-  rasterizeAndPaint(e, 0);
 }
 
-/** Current rotation angle in radians, given an animation and elapsed time. */
-function currentAngleRad(animation: Animation, elapsed: number): number {
+/**
+ * Current rotation angle in radians, given an animation and elapsed time.
+ * Only oscillate/spin contribute rotation; non-rotation kinds return 0
+ * (the caller routes them through CSS transforms instead of rasterization).
+ */
+function currentAngleRad(animation: OscillateAnimation | SpinAnimation, elapsed: number): number {
   if (animation.kind === "oscillate") {
     // x and z reserved; for vector entities, only z matters (in-plane).
     if (animation.axis !== "z") return 0;
@@ -286,12 +398,46 @@ export function rasterizeWedge(
 
 /** Iteration limit derived from animation kind. `null` = run forever. */
 export function periodLimitFor(animation: Animation): number | null {
-  if (animation.kind === "oscillate") {
-    return animation.repeat === "infinite" ? null : animation.repeat;
+  switch (animation.kind) {
+    case "oscillate":
+    case "pulse":
+    case "bob":
+    case "fade":
+      // Oscillate-family: `repeat` is required.
+      return animation.repeat === "infinite" ? null : animation.repeat;
+    case "spin": {
+      // `repeat` is optional and defaults to infinite.
+      const repeat = animation.repeat ?? "infinite";
+      return repeat === "infinite" ? null : repeat;
+    }
+    case "drift":
+      // Continuous translation has no period; runs forever.
+      return null;
   }
-  // spin: repeat is optional and defaults to infinite.
-  const repeat = animation.repeat ?? "infinite";
-  return repeat === "infinite" ? null : repeat;
+}
+
+/**
+ * Has the animation completed `periodLimit` iterations? Encapsulates the
+ * fact that `drift` has no `durationMs` — the renderer can ask without
+ * narrowing the union itself.
+ */
+export function isPeriodComplete(
+  animation: Animation,
+  elapsed: number,
+  periodLimit: number,
+): boolean {
+  switch (animation.kind) {
+    case "oscillate":
+    case "spin":
+    case "pulse":
+    case "bob":
+    case "fade":
+      return elapsed / animation.durationMs >= periodLimit;
+    case "drift":
+      // Drift's periodLimit is always null, so this branch is unreachable in
+      // practice. Return false defensively.
+      return false;
+  }
 }
 
 export function unionPixelSize(layers: Layer[]): { width: number; height: number } {

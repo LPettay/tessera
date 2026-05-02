@@ -23,6 +23,12 @@ export type {
   WedgeSegment,
   VoxelSpriteCell,
   Animation,
+  OscillateAnimation,
+  SpinAnimation,
+  PulseAnimation,
+  BobAnimation,
+  FadeAnimation,
+  DriftAnimation,
 } from "./core/scene.ts";
 
 export type {

@@ -7,6 +7,7 @@ import {
   buildCell,
   buildVoxelCell,
   centroid,
+  isPeriodComplete,
   periodLimitFor,
   rasterizeLine,
   rasterizeWedge,
@@ -134,6 +135,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       pivotedTranslate,
       cellOffset,
       baseTransform,
+      cellSize,
       animation: entity.animation,
       startedAt: 0,
       periodLimit: periodLimitFor(entity.animation),
@@ -152,10 +154,13 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
 
     const tx = entity.position.x * cellSize;
     const ty = entity.position.y * cellSize;
-    // Vector entities use ONLY a translate transform on the group. Rotation
-    // is applied to segment endpoints in cell-space and rasterized to
-    // axis-aligned cells per frame — pixels stay locked to the grid (ADR 0014).
-    group.style.transform = `translate(${tx}px, ${ty}px)`;
+    // Vector entities use ONLY a translate transform on the group for
+    // position. Rotation is applied to segment endpoints in cell-space and
+    // rasterized to axis-aligned cells per frame — pixels stay locked to
+    // the grid (ADR 0014). Non-rotation animations (pulse/bob/fade/drift)
+    // layer additional CSS transforms on top of `baseTransform`.
+    const baseTransform = `translate(${tx}px, ${ty}px)`;
+    group.style.transform = baseTransform;
     group.style.transformOrigin = "0 0";
     group.style.transformBox = "view-box";
 
@@ -183,6 +188,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       segments: entity.shape.segments,
       pivot,
       cellSize,
+      baseTransform,
       animation: entity.animation,
       startedAt: 0,
       periodLimit: periodLimitFor(entity.animation),
@@ -199,9 +205,9 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       if (e.startedAt === 0) e.startedAt = now;
       const elapsed = now - e.startedAt;
 
-      if (e.periodLimit !== null && elapsed / e.animation.durationMs >= e.periodLimit) {
-        // Settle the entity into its neutral (no-rotation) state once.
-        // Subsequent ticks won't run because anyAlive stays false.
+      if (e.periodLimit !== null && isPeriodComplete(e.animation, elapsed, e.periodLimit)) {
+        // Settle the entity into its rest state once. Subsequent ticks won't
+        // run because anyAlive stays false.
         applyNeutral(e);
         continue;
       }
