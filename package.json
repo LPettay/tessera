@@ -23,7 +23,13 @@
     "build:mug": "bun run examples/mug-svg/build.ts",
     "dev:menu": "bun run examples/menu-svg/dev.ts",
     "build:menu": "bun run examples/menu-svg/build.ts",
-    "build:examples": "bun run build:mug && bun run build:menu",
+    "dev:inventory": "bun run examples/inventory-svg/dev.ts",
+    "build:inventory": "bun run examples/inventory-svg/build.ts",
+    "dev:landing": "bun run examples/landing-svg/dev.ts",
+    "build:landing": "bun run examples/landing-svg/build.ts",
+    "dev:rhythm": "bun run examples/rhythm-svg/dev.ts",
+    "build:rhythm": "bun run examples/rhythm-svg/build.ts",
+    "build:examples": "bun run build:mug && bun run build:menu && bun run build:inventory && bun run build:landing && bun run build:rhythm",
     "prepare": "bunx lefthook install || true"
   },
   "devDependencies": {
