@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tessera — Landing (SVG · Tier 1)</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background: #0a0a18;
+        color: #e7e5e4;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+      }
+      #scene {
+        position: fixed;
+        inset: 0;
+      }
+      #scene svg {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+      .brand {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        z-index: 2;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .brand p {
+        margin: 0.15rem 0 0;
+        color: #a8a29e;
+        font-size: 0.85rem;
+      }
+      .hint {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 2;
+        max-width: 22rem;
+        text-align: right;
+        font-size: 0.75rem;
+        color: #57534e;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scene"></div>
+    <div class="brand">
+      <h1>Tessera</h1>
+      <p>landing page · SVG renderer</p>
+    </div>
+    <p class="hint">
+      voxel marketing hero — same primitives that build a JRPG menu also
+      compose a homepage.
+    </p>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
