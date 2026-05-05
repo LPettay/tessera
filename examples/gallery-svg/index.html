@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tessera — Gallery</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background: #050714;
+        color: #e7e5e4;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+      }
+      #scene {
+        position: fixed;
+        inset: 0;
+      }
+      #scene svg {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+
+      /* --- Nav strip ---------------------------------------------- */
+      #gallery-nav {
+        position: fixed;
+        top: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        gap: 0.4rem;
+        padding: 0.4rem;
+        background: rgba(8, 9, 24, 0.78);
+        border: 1px solid rgba(168, 232, 255, 0.18);
+        border-radius: 999px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .gallery-btn {
+        appearance: none;
+        background: transparent;
+        color: #a8a29e;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 0.35rem 0.85rem;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+      }
+      .gallery-btn:hover {
+        color: #f0eada;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .gallery-btn.active {
+        color: #fff8d4;
+        background: rgba(255, 209, 102, 0.18);
+        border-color: rgba(255, 209, 102, 0.45);
+      }
+
+      /* --- Brand + blurb ---------------------------------------- */
+      .brand {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        z-index: 5;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .brand p {
+        margin: 0.15rem 0 0;
+        color: #a8a29e;
+        font-size: 0.85rem;
+      }
+      .meta {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 5;
+        max-width: 26rem;
+        text-align: right;
+        font-size: 0.78rem;
+        color: #a8a29e;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        line-height: 1.45;
+      }
+      .meta .kinds {
+        display: block;
+        margin-top: 0.2rem;
+        color: #57534e;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+      }
+      .meta .keys {
+        display: block;
+        margin-top: 0.5rem;
+        color: #57534e;
+        font-size: 0.7rem;
+      }
+      kbd {
+        display: inline-block;
+        padding: 0.05rem 0.35rem;
+        background: rgba(168, 232, 255, 0.08);
+        border: 1px solid rgba(168, 232, 255, 0.2);
+        border-radius: 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.7rem;
+        color: #c8d4e8;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scene"></div>
+    <nav id="gallery-nav" aria-label="demo selector"></nav>
+    <div class="brand">
+      <h1>Tessera</h1>
+      <p>gallery · SVG renderer</p>
+    </div>
+    <div class="meta">
+      <span id="gallery-blurb"></span>
+      <span class="kinds" id="gallery-kinds"></span>
+      <span class="keys">
+        <kbd>←</kbd> <kbd>→</kbd> cycle · <kbd>1</kbd>–<kbd>5</kbd> jump
+      </span>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -8,6 +8,7 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 
 | Dir | AGENTS.md | Purpose |
 |---|---|---|
+| `gallery-svg/` | [`gallery-svg/AGENTS.md`](./gallery-svg/AGENTS.md) | Hub — mounts one renderer, cycles through every other demo via `controller.setScene`. GH Pages root (`/`). Exercises `setScene` end-to-end. |
 | `mug-svg/` | [`mug-svg/AGENTS.md`](./mug-svg/AGENTS.md) | The MotionPitch coffee mug, ported to Tessera primitives. v0.1 regression test for the SVG renderer + page-citizenship surface. |
 | `menu-svg/` | [`menu-svg/AGENTS.md`](./menu-svg/AGENTS.md) | Stylized title-screen scene exercising the v0.2.x non-rotation Animation kinds (`pulse`, `bob`, `fade`, `drift`). |
 | `inventory-svg/` | [`inventory-svg/AGENTS.md`](./inventory-svg/AGENTS.md) | JRPG-style inventory / status screen — portrait + plume + HP/MP plate + equipment grid + dialogue. Denser layout than menu-svg. |
@@ -31,11 +32,12 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 ## Dev workflow
 
 ```bash
-bun run dev:mug         # mug-svg example at http://localhost:3000
-bun run dev:menu        # menu-svg example at http://localhost:3001
-bun run dev:inventory   # inventory-svg example at http://localhost:3002
-bun run dev:landing     # landing-svg example at http://localhost:3003
-bun run dev:rhythm      # rhythm-svg example at http://localhost:3004
+bun run dev:gallery     # gallery hub  at http://localhost:3005   ← start here
+bun run dev:mug         # mug-svg      at http://localhost:3000
+bun run dev:menu        # menu-svg     at http://localhost:3001
+bun run dev:inventory   # inventory    at http://localhost:3002
+bun run dev:landing     # landing      at http://localhost:3003
+bun run dev:rhythm      # rhythm       at http://localhost:3004
 ```
 
 Each example registers a top-level script in `package.json` of the form `dev:<example-name>`.
