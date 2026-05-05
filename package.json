@@ -21,7 +21,9 @@
     "wt:remove": "bun run scripts/worktree.ts remove",
     "dev:mug": "bun run examples/mug-svg/dev.ts",
     "build:mug": "bun run examples/mug-svg/build.ts",
-    "build:examples": "bun run build:mug",
+    "dev:menu": "bun run examples/menu-svg/dev.ts",
+    "build:menu": "bun run examples/menu-svg/build.ts",
+    "build:examples": "bun run build:mug && bun run build:menu",
     "prepare": "bunx lefthook install || true"
   },
   "devDependencies": {
