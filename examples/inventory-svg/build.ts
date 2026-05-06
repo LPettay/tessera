@@ -1,20 +1,16 @@
 /**
- * Static build for the mug-svg example.
+ * Static build for the inventory-svg example.
  *
- *   bun run build:mug
+ *   bun run build:inventory
  *
- * Outputs to `dist/mug/`. The gallery hub claims `dist/` (the GH Pages
- * root); per-demo bundles live under their own subdirectory (ADR 0017).
- *
- * Output is gitignored (`dist/`); the GitHub Actions workflow runs this
- * on every push to main and uploads the artifact to Pages.
+ * Outputs to `dist/inventory/`.
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const exampleDir = resolve(import.meta.dir);
-const outDir = resolve(exampleDir, "../../dist/mug");
+const outDir = resolve(exampleDir, "../../dist/inventory");
 
 await mkdir(outDir, { recursive: true });
 
@@ -36,4 +32,4 @@ const html = await Bun.file(resolve(exampleDir, "index.html")).text();
 await writeFile(resolve(outDir, "index.html"), html, "utf8");
 
 const bytes = result.outputs.reduce((sum, o) => sum + o.size, 0);
-console.log(`built dist/mug/  (${result.outputs.length} files, ${(bytes / 1024).toFixed(1)} KB)`);
+console.log(`built dist/inventory/  (${result.outputs.length} files, ${(bytes / 1024).toFixed(1)} KB)`);
