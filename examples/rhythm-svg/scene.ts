@@ -209,6 +209,7 @@ const notes: Entity[] = NOTE_SEEDS.map((n, i) => {
 });
 
 // --- Score block (top-left, pulses) ----------------------------------- //
+// Panel sized for "SCORE" label (29 cells wide) plus a 6-digit number.
 
 const scoreFrame: Entity = {
   id: "score-frame",
@@ -216,22 +217,29 @@ const scoreFrame: Entity = {
   shape: {
     kind: "voxel-sprite",
     cells: [
-      rect(2, 2, 30, 8, PANEL_RIM),
-      rect(3, 3, 28, 6, PANEL),
-      // "SCORE" label row
-      rect(4, 4, 8, 1, TEXT),
-      // Score digits
-      rect(13, 4, 18, 2, COMBO),
-      rect(13, 7, 12, 1, "#8094c8"),
+      rect(2, 2, 38, 16, PANEL_RIM),
+      rect(3, 3, 36, 14, PANEL),
     ],
     pivot: { x: 0, y: 0 },
   },
 };
 
+const scoreLabel: Entity = {
+  id: "score-label",
+  position: { x: 5, y: 5 },
+  shape: { kind: "text", text: "SCORE", fill: TEXT },
+};
+
+const scoreValue: Entity = {
+  id: "score-value",
+  position: { x: 5, y: 9 },
+  shape: { kind: "text", text: "012480", fill: COMBO },
+};
+
 // Pulsing accent on the score (faked "you just scored" feedback).
 const scorePulse: Entity = {
   id: "score-pulse",
-  position: { x: 30, y: 5 },
+  position: { x: 37, y: 6 },
   shape: {
     kind: "voxel-sprite",
     cells: [rect(-1, -1, 2, 2, NOTE_HOT)],
@@ -241,6 +249,7 @@ const scorePulse: Entity = {
 };
 
 // --- Combo counter (top-right, pulses bigger) ------------------------- //
+// Panel widened to fit "COMBO" (29 cells) plus a 2-digit number.
 
 const comboFrame: Entity = {
   id: "combo-frame",
@@ -248,27 +257,30 @@ const comboFrame: Entity = {
   shape: {
     kind: "voxel-sprite",
     cells: [
-      rect(94, 2, 24, 12, COMBO_RIM),
-      rect(95, 3, 22, 10, PANEL),
-      // "COMBO" label
-      rect(98, 4, 8, 1, TEXT),
-      // Big combo number block
-      rect(98, 7, 16, 4, COMBO),
+      rect(82, 2, 36, 16, COMBO_RIM),
+      rect(83, 3, 34, 14, PANEL),
     ],
     pivot: { x: 0, y: 0 },
   },
 };
 
+const comboLabel: Entity = {
+  id: "combo-label",
+  position: { x: 85, y: 5 },
+  shape: { kind: "text", text: "COMBO", fill: TEXT },
+};
+
 // The combo number itself pulses to feel alive.
 const comboNumber: Entity = {
   id: "combo-number",
-  position: { x: 106, y: 9 },
+  position: { x: 100, y: 12 },
   shape: {
-    kind: "voxel-sprite",
-    cells: [rect(-7, -2, 14, 4, NOTE_HOT)],
-    pivot: { x: 0, y: 0 },
+    kind: "text",
+    text: "23",
+    fill: NOTE_HOT,
+    pivot: { x: 5, y: 3 },
   },
-  animation: { kind: "pulse", from: 0.92, to: 1.1, durationMs: 500, repeat: "infinite" },
+  animation: { kind: "pulse", from: 0.95, to: 1.25, durationMs: 500, repeat: "infinite" },
 };
 
 // --- Groove bar (bottom, fades) -------------------------------------- //
@@ -286,6 +298,12 @@ const grooveFrame: Entity = {
     ],
     pivot: { x: 0, y: 0 },
   },
+};
+
+const grooveLabel: Entity = {
+  id: "groove-label",
+  position: { x: 22, y: 46 },
+  shape: { kind: "text", text: "GROOVE", fill: TEXT },
 };
 
 // Pulse highlight on the groove bar tip.
@@ -334,17 +352,16 @@ const avatarRight: Entity = {
 };
 
 // --- "PRESS BEAT" cursor (fade) -------------------------------------- //
+// "PRESS BEAT" = 10 chars × 5 + 9 spacing = 59 cells wide.
 
 const pressBeat: Entity = {
   id: "press-beat",
   position: { x: 60, y: 52 },
   shape: {
-    kind: "voxel-sprite",
-    cells: [
-      rect(-7, -1, 14, 2, COMBO),
-      rect(-6, 0, 12, 1, AVATAR_HIGHLIGHT),
-    ],
-    pivot: { x: 0, y: 0 },
+    kind: "text",
+    text: "PRESS BEAT",
+    fill: COMBO,
+    pivot: { x: 30, y: 3 },
   },
   animation: { kind: "fade", from: 0.25, to: 1.0, durationMs: 600, repeat: "infinite" },
 };
@@ -401,10 +418,14 @@ const hudLayer: Layer = {
   height: LAYER.height,
   entities: [
     scoreFrame,
+    scoreLabel,
+    scoreValue,
     scorePulse,
     comboFrame,
+    comboLabel,
     comboNumber,
     grooveFrame,
+    grooveLabel,
     groovePulse,
     avatarLeft,
     avatarRight,

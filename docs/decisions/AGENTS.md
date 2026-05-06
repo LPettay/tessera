@@ -26,7 +26,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0015-gh-pages-deploy.md` | Deploy `dist/` (built by `bun run build:examples`) to GitHub Pages via Actions workflow; URL `https://lpettay.github.io/tessera/` |
 | `0016-animation-leaf-kind-palette.md` | Add `pulse`, `bob`, `fade`, `drift` to `Animation` union (Accepted) |
 | `0017-gallery-and-multi-example-layout.md` | Gallery hub at `/`, per-demo URLs at `/<name>/`; mug moves from `/` to `/mug/` |
-| `0018-text-entity-shape.md` | `text` `EntityShape` kind with built-in 5×7 ASCII font (Proposed) |
+| `0018-text-entity-shape.md` | `text` `EntityShape` kind with built-in 5×7 ASCII font (Accepted) |
 
 When you add an ADR, add a row above and bump the number sequentially.
 
@@ -57,4 +57,4 @@ When you add an ADR, add a row above and bump the number sequentially.
 
 ---
 
-<!-- last-reviewed: e5415c7 -->
+<!-- last-reviewed: f6992a4 -->
