@@ -86,34 +86,37 @@ const sunCells: VoxelSpriteCell[] = [
 
 const sun: Entity = {
   id: "sun",
-  position: { x: 50, y: 28 },
+  position: { x: 50, y: 26 },
   shape: { kind: "voxel-sprite", cells: sunCells, pivot: { x: 0, y: 0 } },
   animation: { kind: "pulse", from: 1.0, to: 1.12, durationMs: 1800, repeat: "infinite" },
 };
 
 // Title — "TESSERA" centered above the sun, pulses.
-// "TESSERA" = 7 chars × 5 + 6 spacing = 41 cells wide, 7 tall. Pivot at (20, 3) centers it.
+// At scale 0.6: 41-cell raw width × 0.6 = ~25 cells; pivot ≈ (12, 2).
 const title: Entity = {
   id: "title",
-  position: { x: 50, y: 12 },
+  position: { x: 50, y: 8 },
   shape: {
     kind: "text",
     text: "TESSERA",
     fill: SUN_CORE,
-    pivot: { x: 20, y: 3 },
+    scale: 0.6,
+    pivot: { x: 12, y: 2 },
   },
   animation: { kind: "pulse", from: 1.0, to: 1.06, durationMs: 2400, repeat: "infinite" },
 };
 
-// Subtitle — "VOXEL UI" (8 chars × 5 + 7 spacing = 47 wide). Static.
+// Subtitle — smaller body-scale text.
+// At scale 0.4: 47-cell raw width × 0.4 ≈ 19 cells; pivot ≈ (9, 1.4).
 const subtitle: Entity = {
   id: "subtitle",
-  position: { x: 50, y: 19 },
+  position: { x: 50, y: 15 },
   shape: {
     kind: "text",
     text: "VOXEL UI",
     fill: STAR,
-    pivot: { x: 23, y: 3 },
+    scale: 0.4,
+    pivot: { x: 9, y: 1.4 },
   },
 };
 
@@ -154,6 +157,7 @@ const menu: Entity[] = [
 // --- Fading "PRESS START" cursor ----------------------------------------- //
 // "PRESS START" = 11 chars × 5 + 10 spacing = 65 cells wide. Pivot at (32, 3) centers it.
 
+// At scale 0.5: 65-cell raw width × 0.5 ≈ 33 cells; pivot ≈ (16, 1.75).
 const cursor: Entity = {
   id: "press-start",
   position: { x: 50, y: 50 },
@@ -161,7 +165,8 @@ const cursor: Entity = {
     kind: "text",
     text: "PRESS START",
     fill: CURSOR,
-    pivot: { x: 32, y: 3 },
+    scale: 0.5,
+    pivot: { x: 16, y: 1.75 },
   },
   animation: { kind: "fade", from: 0.2, to: 1.0, durationMs: 1100, repeat: "infinite" },
 };

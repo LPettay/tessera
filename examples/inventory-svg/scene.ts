@@ -168,31 +168,32 @@ const namePlate: Entity = {
 };
 
 // Character name — pulls the plate from "abstract bars" to "this is a
-// specific knight." 6 chars × 5 + 5 spacing = 35 wide, 7 tall.
+// specific knight." Scale 0.5 keeps the name compact (6 chars × 6 ≈ 18 cells).
 const nameText: Entity = {
   id: "name-text",
-  position: { x: 38, y: 6 },
-  shape: { kind: "text", text: "ARTHUR", fill: ACCENT_HOT },
+  position: { x: 38, y: 5 },
+  shape: { kind: "text", text: "ARTHUR", fill: ACCENT_HOT, scale: 0.5 },
 };
 
-// HP / MP labels next to their bars. "HP"/"MP" = 2 chars × 5 + 1 = 11 wide.
+// HP / MP labels next to their bars. Scale 0.4 keeps each label tiny
+// (2 chars × 6 × 0.4 ≈ 5 cells wide × ~3 tall) so it fits beside the bar.
 const hpLabel: Entity = {
   id: "hp-label",
-  position: { x: 38, y: 16 },
-  shape: { kind: "text", text: "HP", fill: HP_HI },
+  position: { x: 36, y: 11 },
+  shape: { kind: "text", text: "HP", fill: HP_HI, scale: 0.4 },
 };
 
 const mpLabel: Entity = {
   id: "mp-label",
-  position: { x: 38, y: 19 },
-  shape: { kind: "text", text: "MP", fill: MP_HI },
+  position: { x: 36, y: 14 },
+  shape: { kind: "text", text: "MP", fill: MP_HI, scale: 0.4 },
 };
 
 // EXP label tucked into the right side of the plate.
 const expLabel: Entity = {
   id: "exp-label",
-  position: { x: 76, y: 12 },
-  shape: { kind: "text", text: "EXP", fill: ACCENT },
+  position: { x: 73, y: 5 },
+  shape: { kind: "text", text: "EXP", fill: ACCENT, scale: 0.4 },
 };
 
 // "HP critical" warning bar — a short red overlay on the HP bar that
@@ -285,11 +286,13 @@ const actionMenuStatic: Entity = {
   shape: { kind: "voxel-sprite", cells: actionRows, pivot: { x: 0, y: 0 } },
 };
 
-const ACTION_LABELS = ["ATK", "MAG", "USE", "RUN"];
+const ACTION_LABELS = ["FIGHT", "MAGIC", "ITEM", "RUN"];
+// Scale 0.5: "MAGIC"/"FIGHT" raw 29 cells × 0.5 ≈ 15 cells. Fits comfortably
+// inside the 22-cell-wide row and lets the active highlight read clearly.
 const actionLabels: Entity[] = ACTION_LABELS.map((label, i) => ({
   id: `action-label-${i}`,
-  position: { x: ACTION_X + 6, y: ACTION_Y + 2 + i * ROW_HEIGHT - 2 },
-  shape: { kind: "text", text: label, fill: TEXT },
+  position: { x: ACTION_X + 6, y: ACTION_Y + 2 + i * ROW_HEIGHT },
+  shape: { kind: "text", text: label, fill: TEXT, scale: 0.5 },
 }));
 
 // Pulsing selection cursor (a triangle-ish arrow next to the active row).
@@ -312,13 +315,16 @@ const selectionCursor: Entity = {
 // Word wrap and multi-line dialogue land with a future text-layout
 // helper; for now, keep the message punchy and one row.
 
+// Scale 0.55: 14 chars × 6 × 0.55 ≈ 46 cells wide × ~4 tall. Comfortable
+// inside the 96-wide × 10-tall dialogue panel; gives the text room to breathe.
 const dialogueText: Entity = {
   id: "dialogue-text",
-  position: { x: 6, y: 47 },
+  position: { x: 6, y: 48 },
   shape: {
     kind: "text",
-    text: "ENEMY APPEARS!",
+    text: "A DARK PRESENCE STIRS BELOW!",
     fill: TEXT,
+    scale: 0.45,
   },
 };
 
