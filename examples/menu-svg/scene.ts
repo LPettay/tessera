@@ -86,9 +86,35 @@ const sunCells: VoxelSpriteCell[] = [
 
 const sun: Entity = {
   id: "sun",
-  position: { x: 50, y: 22 },
+  position: { x: 50, y: 28 },
   shape: { kind: "voxel-sprite", cells: sunCells, pivot: { x: 0, y: 0 } },
   animation: { kind: "pulse", from: 1.0, to: 1.12, durationMs: 1800, repeat: "infinite" },
+};
+
+// Title — "TESSERA" centered above the sun, pulses.
+// "TESSERA" = 7 chars × 5 + 6 spacing = 41 cells wide, 7 tall. Pivot at (20, 3) centers it.
+const title: Entity = {
+  id: "title",
+  position: { x: 50, y: 12 },
+  shape: {
+    kind: "text",
+    text: "TESSERA",
+    fill: SUN_CORE,
+    pivot: { x: 20, y: 3 },
+  },
+  animation: { kind: "pulse", from: 1.0, to: 1.06, durationMs: 2400, repeat: "infinite" },
+};
+
+// Subtitle — "VOXEL UI" (8 chars × 5 + 7 spacing = 47 wide). Static.
+const subtitle: Entity = {
+  id: "subtitle",
+  position: { x: 50, y: 19 },
+  shape: {
+    kind: "text",
+    text: "VOXEL UI",
+    fill: STAR,
+    pivot: { x: 23, y: 3 },
+  },
 };
 
 // --- Bobbing menu icons --------------------------------------------------- //
@@ -125,15 +151,18 @@ const menu: Entity[] = [
   },
 ];
 
-// --- Fading press-start cursor ------------------------------------------- //
-// A short horizontal bar near the bottom that fades opacity 0.2 ↔ 1.0.
-
-const cursorCells: VoxelSpriteCell[] = [{ x: -3, y: 0, w: 6, h: 1, fill: CURSOR }];
+// --- Fading "PRESS START" cursor ----------------------------------------- //
+// "PRESS START" = 11 chars × 5 + 10 spacing = 65 cells wide. Pivot at (32, 3) centers it.
 
 const cursor: Entity = {
   id: "press-start",
   position: { x: 50, y: 50 },
-  shape: { kind: "voxel-sprite", cells: cursorCells, pivot: { x: 0, y: 0 } },
+  shape: {
+    kind: "text",
+    text: "PRESS START",
+    fill: CURSOR,
+    pivot: { x: 32, y: 3 },
+  },
   animation: { kind: "fade", from: 0.2, to: 1.0, durationMs: 1100, repeat: "infinite" },
 };
 
@@ -155,7 +184,7 @@ const foregroundLayer: Layer = {
   cellSize: LAYER.cellSize,
   width: LAYER.width,
   height: LAYER.height,
-  entities: [sun, ...menu, cursor],
+  entities: [title, subtitle, sun, ...menu, cursor],
   zIndex: 1,
   opacity: 1,
   visible: true,

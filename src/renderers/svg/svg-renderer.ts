@@ -1,5 +1,6 @@
 import type { Entity, Layer, Scene } from "../../core/scene.ts";
 import type { Renderer, RendererController } from "../../core/renderer.ts";
+import { rasterizeText } from "../../core/text.ts";
 import {
   SVG_NS,
   applyAnimation,
@@ -90,6 +91,16 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
 
     if (entity.shape.kind === "vector") {
       return buildVectorEntity(group, entity, cellSize);
+    }
+    if (entity.shape.kind === "text") {
+      // Text rasterizes once into voxel-sprite cells (ADR 0018) — animation
+      // and rendering paths are then identical to a hand-authored sprite.
+      const cells = rasterizeText(entity.shape);
+      const synthetic: Entity = {
+        ...entity,
+        shape: { kind: "voxel-sprite", cells, pivot: { x: 0, y: 0 } },
+      };
+      return buildVoxelEntity(group, synthetic, cellSize);
     }
     return buildVoxelEntity(group, entity, cellSize);
   }

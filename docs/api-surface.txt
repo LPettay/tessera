@@ -19,6 +19,7 @@ RendererTier
 Scene
 SpinAnimation
 SunburstConfig
+TextShape
 VectorSegment
 VoxelSpriteCell
 WedgeSegment

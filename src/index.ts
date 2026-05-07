@@ -22,6 +22,7 @@ export type {
   LineSegment,
   WedgeSegment,
   VoxelSpriteCell,
+  TextShape,
   Animation,
   OscillateAnimation,
   SpinAnimation,

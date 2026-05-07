@@ -8,10 +8,11 @@ Engine core. **Vanilla TypeScript, zero runtime dependencies, no React, no DOM-o
 
 | File | Purpose |
 |---|---|
-| `scene.ts` | Scene description language — `Scene`, `Layer`, `Cell`, `Entity`, `EntityShape`, `VoxelSpriteCell`, `Animation`. Pure data types, no behavior. |
+| `scene.ts` | Scene description language — `Scene`, `Layer`, `Cell`, `Entity`, `EntityShape` (incl. `TextShape`), `VoxelSpriteCell`, `Animation`. Pure data types, no behavior. |
 | `renderer.ts` | Renderer contract — `Renderer`, `RendererCapabilities`, `RendererController`, `RendererTier`. The interface every renderer tier implements. |
 | `page-citizenship.ts` | `withPageCitizenship(inner, container)` — wraps a `RendererController` so it auto-pauses on IntersectionObserver / `visibilitychange` / `prefers-reduced-motion`. See ADR 0010. |
 | `generator.ts` | `BackgroundGenerator<Config>` primitive — pure function `(config, geometry) → { cells, entities }` for hand-crafted layer-fill templates. See ADR 0013. |
+| `text.ts` | Built-in 5×7 fixed-width ASCII bitmap font + `rasterizeText`/`measureText` helpers. Internal — not on the public API surface. See ADR 0018. |
 
 ### Planned (not yet created)
 

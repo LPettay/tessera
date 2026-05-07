@@ -94,6 +94,9 @@ export type Entity = {
  *   segment endpoints first. Cells stay axis-aligned at every angle — true
  *   pixel-art rotation. Slightly more CPU per frame but visually correct.
  *   See ADR 0014.
+ * - `text`: an ASCII string rasterized through a built-in 5×7 pixel font
+ *   into single-cell entries. Lowercase folds to uppercase. Animations
+ *   apply at the group level (same path as `voxel-sprite`). See ADR 0018.
  */
 export type EntityShape =
   | {
@@ -115,7 +118,38 @@ export type EntityShape =
        * `(0, 0)` — segments are typically authored with origin as the pivot.
        */
       pivot?: { x: number; y: number };
-    };
+    }
+  | TextShape;
+
+/**
+ * Text shape — a string rendered through a built-in 5×7 fixed-width
+ * ASCII bitmap font. Lowercase folds to uppercase; non-ASCII chars
+ * render as a hatched-box placeholder so missing glyphs are visible.
+ *
+ * Multi-line text uses `\n`. Word wrap, alignment, and rich text are
+ * not supported — author multiple `text` entities for layout.
+ *
+ * Renderer treats the rasterized output identically to `voxel-sprite`,
+ * so every `Animation` kind composes (pulse a title, fade a cursor,
+ * bob a label, drift a subtitle, etc.).
+ */
+export type TextShape = {
+  kind: "text";
+  /** ASCII printable text (0x20..0x7E). `\n` introduces a new line. */
+  text: string;
+  /** Solid fill color, hex string. */
+  fill: string;
+  /** Cells of horizontal gap between glyphs. Default 1. */
+  letterSpacing?: number;
+  /** Cells of vertical gap between text lines. Default 1. */
+  lineSpacing?: number;
+  /**
+   * Anchor point in entity-local cell coordinates. Defaults to (0, 0)
+   * — the top-left of the first glyph. For centering, set to half the
+   * rendered width/height (see `measureText` in core).
+   */
+  pivot?: { x: number; y: number };
+};
 
 /**
  * A drawable segment within a `vector` shape. Tagged union — discriminate

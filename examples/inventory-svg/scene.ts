@@ -143,26 +143,21 @@ const plume: Entity = {
 
 // --- Name plate (static) and HP/MP bars (animated) ---------------------- //
 
-// Plate background (static under the bars)
+// Plate background — bars and graphics only; labels and the character
+// name are real text entities layered on top.
 const plateCells: VoxelSpriteCell[] = [
   rect(0, 0, 60, 14, PANEL_DARK),
   rect(0, 0, 60, 1, ACCENT),
   rect(0, 13, 60, 1, ACCENT),
-  // "name" — pixel block reading as a name slot, not actual text
-  rect(2, 2, 18, 2, TEXT),
-  rect(2, 5, 8, 1, "#8094c8"),
-  // HP label block
-  rect(2, 7, 4, 2, HP_HI),
-  rect(8, 7, 24, 2, PANEL_LIGHT), // HP bar bg
-  rect(8, 7, 18, 2, HP_HI),       // HP bar fill (3/4)
-  // MP label block
-  rect(2, 10, 4, 2, MP_HI),
-  rect(8, 10, 24, 2, PANEL_LIGHT), // MP bar bg
-  rect(8, 10, 14, 2, MP_HI),       // MP bar fill (~half)
+  // HP bar
+  rect(8, 8, 24, 2, PANEL_LIGHT), // HP bar bg
+  rect(8, 8, 18, 2, HP_HI),       // HP bar fill (3/4)
+  // MP bar
+  rect(8, 11, 24, 2, PANEL_LIGHT), // MP bar bg
+  rect(8, 11, 14, 2, MP_HI),       // MP bar fill (~half)
   // EXP indicator on the right
   rect(34, 2, 24, 1, "#3a4280"),
   rect(34, 2, 16, 1, ACCENT),
-  rect(34, 4, 4, 2, ACCENT),
   rect(40, 4, 18, 2, "#3a4280"),
 ];
 
@@ -170,6 +165,34 @@ const namePlate: Entity = {
   id: "name-plate",
   position: { x: 36, y: 4 },
   shape: { kind: "voxel-sprite", cells: plateCells, pivot: { x: 0, y: 0 } },
+};
+
+// Character name — pulls the plate from "abstract bars" to "this is a
+// specific knight." 6 chars × 5 + 5 spacing = 35 wide, 7 tall.
+const nameText: Entity = {
+  id: "name-text",
+  position: { x: 38, y: 6 },
+  shape: { kind: "text", text: "ARTHUR", fill: ACCENT_HOT },
+};
+
+// HP / MP labels next to their bars. "HP"/"MP" = 2 chars × 5 + 1 = 11 wide.
+const hpLabel: Entity = {
+  id: "hp-label",
+  position: { x: 38, y: 16 },
+  shape: { kind: "text", text: "HP", fill: HP_HI },
+};
+
+const mpLabel: Entity = {
+  id: "mp-label",
+  position: { x: 38, y: 19 },
+  shape: { kind: "text", text: "MP", fill: MP_HI },
+};
+
+// EXP label tucked into the right side of the plate.
+const expLabel: Entity = {
+  id: "exp-label",
+  position: { x: 76, y: 12 },
+  shape: { kind: "text", text: "EXP", fill: ACCENT },
 };
 
 // "HP critical" warning bar — a short red overlay on the HP bar that
@@ -241,19 +264,19 @@ const items: Entity[] = ITEMS.map((it, i) => {
 });
 
 // --- Action menu --------------------------------------------------------- //
-// Four vertical menu rows; the first row has a pulsing selection cursor
-// to its left, indicating the active option.
+// Four vertical menu rows with real labels — JRPG-style 3-letter command
+// names (ATK / MAG / USE / RUN) so they fit the existing panel without
+// redesigning the layout. "FIGHT" / "MAGIC" would need a wider panel; the
+// shorter forms read just as clearly and free up the diff.
 
 const ACTION_X = 70;
 const ACTION_Y = 22;
+const ROW_HEIGHT = 5;
 
 const actionRows: VoxelSpriteCell[] = [];
 for (let i = 0; i < 4; i++) {
-  const ay = ACTION_Y + 2 + i * 5;
-  // Row body
-  actionRows.push(rect(ACTION_X + 4, ay, 22, 3, i === 0 ? PANEL_LIGHT : "#1a1f3d"));
-  // Row label glyph block
-  actionRows.push(rect(ACTION_X + 6, ay + 1, 8, 1, TEXT));
+  const ay = ACTION_Y + 2 + i * ROW_HEIGHT;
+  actionRows.push(rect(ACTION_X + 4, ay, 22, 4, i === 0 ? PANEL_LIGHT : "#1a1f3d"));
 }
 
 const actionMenuStatic: Entity = {
@@ -261,6 +284,13 @@ const actionMenuStatic: Entity = {
   position: { x: 0, y: 0 },
   shape: { kind: "voxel-sprite", cells: actionRows, pivot: { x: 0, y: 0 } },
 };
+
+const ACTION_LABELS = ["ATK", "MAG", "USE", "RUN"];
+const actionLabels: Entity[] = ACTION_LABELS.map((label, i) => ({
+  id: `action-label-${i}`,
+  position: { x: ACTION_X + 6, y: ACTION_Y + 2 + i * ROW_HEIGHT - 2 },
+  shape: { kind: "text", text: label, fill: TEXT },
+}));
 
 // Pulsing selection cursor (a triangle-ish arrow next to the active row).
 const cursorCells: VoxelSpriteCell[] = [
@@ -277,19 +307,19 @@ const selectionCursor: Entity = {
 };
 
 // --- Dialogue box -------------------------------------------------------- //
-// Pixel-text-block rows simulate a multi-line message; a fading triangle
-// at the right indicates "press to continue".
-
-const dialogueRows: VoxelSpriteCell[] = [
-  rect(6, 47, 70, 1, TEXT),
-  rect(6, 49, 56, 1, TEXT),
-  rect(6, 51, 40, 1, TEXT),
-];
+// Single-line message — the dialogue panel is only 10 cells tall, so a
+// 7-tall glyph row is the most that fits without expanding the panel.
+// Word wrap and multi-line dialogue land with a future text-layout
+// helper; for now, keep the message punchy and one row.
 
 const dialogueText: Entity = {
   id: "dialogue-text",
-  position: { x: 0, y: 0 },
-  shape: { kind: "voxel-sprite", cells: dialogueRows, pivot: { x: 0, y: 0 } },
+  position: { x: 6, y: 47 },
+  shape: {
+    kind: "text",
+    text: "ENEMY APPEARS!",
+    fill: TEXT,
+  },
 };
 
 const continueArrow: Entity = {
@@ -349,8 +379,13 @@ const contentLayer: Layer = {
     portrait,
     plume,
     namePlate,
+    nameText,
+    hpLabel,
+    mpLabel,
+    expLabel,
     hpWarning,
     actionMenuStatic,
+    ...actionLabels,
     selectionCursor,
     ...items,
     dialogueText,
