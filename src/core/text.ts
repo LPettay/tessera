@@ -139,14 +139,19 @@ function glyphFor(charCode: number): readonly number[] {
 }
 
 /**
- * Rasterize a `TextShape` to single-cell `VoxelSpriteCell` entries the
- * renderer can paint. Output coordinates are in entity-local cell units;
- * `pivot` shifts the result so `pivot` lands at the entity's `position`.
+ * Rasterize a `TextShape` to `VoxelSpriteCell` entries the renderer
+ * can paint. Output coordinates are in entity-local cell units, scaled
+ * by `shape.scale` (default 1). `pivot` shifts the result so the pivot
+ * lands at the entity's `position`.
  *
  * `\n` advances to a new line. Letter spacing defaults to 1; line
- * spacing defaults to 1.
+ * spacing defaults to 1. Both stay in glyph-cell units (multiplied by
+ * `scale`) so a `letterSpacing: 1` always means "one glyph-cell of gap"
+ * regardless of render scale. See ADR 0018 (the primitive) and ADR 0019
+ * (the `scale` extension).
  */
 export function rasterizeText(shape: TextShape): VoxelSpriteCell[] {
+  const scale = shape.scale ?? 1;
   const letterSpacing = shape.letterSpacing ?? 1;
   const lineSpacing = shape.lineSpacing ?? 1;
   const pivotX = shape.pivot?.x ?? 0;
@@ -160,7 +165,7 @@ export function rasterizeText(shape: TextShape): VoxelSpriteCell[] {
     const ch = shape.text.charCodeAt(i);
     if (ch === 0x0a) {
       cellX = 0;
-      cellY += FONT_HEIGHT + lineSpacing;
+      cellY += (FONT_HEIGHT + lineSpacing) * scale;
       continue;
     }
     const glyph = glyphFor(ch);
@@ -171,37 +176,43 @@ export function rasterizeText(shape: TextShape): VoxelSpriteCell[] {
         const mask = 1 << (FONT_WIDTH - 1 - col);
         if (bits & mask) {
           out.push({
-            x: cellX + col - pivotX,
-            y: cellY + row - pivotY,
+            x: cellX + col * scale - pivotX,
+            y: cellY + row * scale - pivotY,
+            w: scale,
+            h: scale,
             fill: shape.fill,
           });
         }
       }
     }
-    cellX += FONT_WIDTH + letterSpacing;
+    cellX += (FONT_WIDTH + letterSpacing) * scale;
   }
 
   return out;
 }
 
 /**
- * Pixel-cell footprint of a rendered text shape — useful for centering
- * a text entity inside a parent without rasterizing twice. Returns the
- * unrotated bounding box in cells.
+ * Pixel-cell footprint of a rendered text shape (post-scale) — useful
+ * for centering a text entity inside a parent without rasterizing twice.
+ * Returns the unrotated bounding box in entity-local cell units.
  */
-export function measureText(shape: Pick<TextShape, "text" | "letterSpacing" | "lineSpacing">): {
+export function measureText(
+  shape: Pick<TextShape, "text" | "scale" | "letterSpacing" | "lineSpacing">,
+): {
   width: number;
   height: number;
 } {
+  const scale = shape.scale ?? 1;
   const letterSpacing = shape.letterSpacing ?? 1;
   const lineSpacing = shape.lineSpacing ?? 1;
 
   const lines = shape.text.split("\n");
   const longest = lines.reduce((m, l) => Math.max(m, l.length), 0);
-  const width = longest === 0 ? 0 : longest * FONT_WIDTH + (longest - 1) * letterSpacing;
+  const width =
+    longest === 0 ? 0 : (longest * FONT_WIDTH + (longest - 1) * letterSpacing) * scale;
   const height =
     lines.length === 0
       ? 0
-      : lines.length * FONT_HEIGHT + (lines.length - 1) * lineSpacing;
+      : (lines.length * FONT_HEIGHT + (lines.length - 1) * lineSpacing) * scale;
   return { width, height };
 }

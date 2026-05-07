@@ -139,14 +139,22 @@ export type TextShape = {
   text: string;
   /** Solid fill color, hex string. */
   fill: string;
-  /** Cells of horizontal gap between glyphs. Default 1. */
+  /**
+   * Glyph "pixel" size in layer cells. Default 1 — each glyph pixel
+   * occupies one layer cell (ADR-0018 behavior). Use values < 1
+   * (typically 0.3–0.6) for typography-scale text whose glyphs are
+   * smaller than the surrounding macro art. See ADR 0019.
+   */
+  scale?: number;
+  /** Glyph-cells of horizontal gap between glyphs (multiplied by `scale`). Default 1. */
   letterSpacing?: number;
-  /** Cells of vertical gap between text lines. Default 1. */
+  /** Glyph-cells of vertical gap between text lines (multiplied by `scale`). Default 1. */
   lineSpacing?: number;
   /**
-   * Anchor point in entity-local cell coordinates. Defaults to (0, 0)
-   * — the top-left of the first glyph. For centering, set to half the
-   * rendered width/height (see `measureText` in core).
+   * Anchor point in entity-local cell coordinates (post-scale).
+   * Defaults to (0, 0) — the top-left of the first glyph. For
+   * centering, set to half the rendered width/height (see `measureText`
+   * in core, which returns post-scale dimensions).
    */
   pivot?: { x: number; y: number };
 };

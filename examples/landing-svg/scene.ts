@@ -22,7 +22,6 @@ const PANEL_RIM = "#2a2c52";
 const NAV_FILL = "#13142b";
 const TITLE_BODY = "#fff8d4";
 const TITLE_GLOW = "#ffd166";
-const TITLE_RIM = "#f57350";
 const ACCENT = "#a8e8ff";
 const CARD_BODY = "#1c1d3a";
 const CARD_RIM = "#3a4280";
@@ -63,20 +62,17 @@ const navBarFrame: Entity = {
   },
 };
 
-// Logo mark: a small "T" shape on the left.
+// Logo mark: small "TESSERA" wordmark on the left of the nav. x=8 keeps
+// it inside the slice-crop safe zone (browser crops ~5 cells per side).
 const logoMark: Entity = {
   id: "logo-mark",
-  position: { x: 6, y: 4 },
+  position: { x: 8, y: 3 },
   shape: {
-    kind: "voxel-sprite",
-    cells: [
-      rect(-3, -2, 7, 1, TITLE_GLOW),
-      rect(0, -1, 1, 4, TITLE_GLOW),
-      rect(-3, -3, 7, 1, TITLE_RIM),
-    ],
-    pivot: { x: 0, y: 0 },
+    kind: "text",
+    text: "TESSERA",
+    fill: TITLE_GLOW,
+    scale: 0.3,
   },
-  // Subtle sway on the brand mark — same trick the mug uses.
   animation: { kind: "oscillate", axis: "y", degrees: 8, durationMs: 4400, repeat: "infinite" },
 };
 
@@ -105,45 +101,47 @@ const navIcons: Entity[] = NAV_SEEDS.map((n, i) => ({
 
 // --- Hero ----------------------------------------------------------------- //
 
-// Glow halo behind the title — a wide soft block that fades.
+// Glow halo behind the title — sized to the typography-scale title.
 const heroGlow: Entity = {
   id: "hero-glow",
-  position: { x: 50, y: 18 },
+  position: { x: 50, y: 16 },
   shape: {
     kind: "voxel-sprite",
     cells: [
-      rect(-22, -8, 44, 16, TITLE_GLOW),
-      rect(-18, -10, 36, 2, TITLE_GLOW),
-      rect(-18, 8, 36, 2, TITLE_GLOW),
+      rect(-18, -4, 36, 8, TITLE_GLOW),
+      rect(-15, -5, 30, 1, TITLE_GLOW),
+      rect(-15, 4, 30, 1, TITLE_GLOW),
     ],
     pivot: { x: 0, y: 0 },
   },
   animation: { kind: "fade", from: 0.05, to: 0.18, durationMs: 2400, repeat: "infinite" },
 };
 
-// Title — "TESSERA" replacing the abstract T-mark with actual typography.
-// 7 chars × 5 + 6 spacing = 41 cells wide; pivot (20, 3) centers it.
+// Title — "TESSERA" at typography scale. scale 0.7 → ~29 cells wide;
+// pivot (14, 2.5) centers it.
 const heroTitle: Entity = {
   id: "hero-title",
-  position: { x: 50, y: 18 },
+  position: { x: 50, y: 16 },
   shape: {
     kind: "text",
     text: "TESSERA",
     fill: TITLE_BODY,
-    pivot: { x: 20, y: 3 },
+    scale: 0.7,
+    pivot: { x: 14, y: 2.5 },
   },
   animation: { kind: "pulse", from: 1.0, to: 1.06, durationMs: 2400, repeat: "infinite" },
 };
 
-// Subtitle — real copy under the title. "VOXEL UI" = 8 chars = 47 wide.
+// Subtitle — body text, smaller still. scale 0.4 → 47*0.4 ≈ 19 cells wide.
 const heroSubtitle: Entity = {
   id: "hero-subtitle",
-  position: { x: 50, y: 27 },
+  position: { x: 50, y: 23 },
   shape: {
     kind: "text",
-    text: "VOXEL UI",
+    text: "VOXEL UI FRAMEWORK",
     fill: TEXT,
-    pivot: { x: 23, y: 3 },
+    scale: 0.4,
+    pivot: { x: 21, y: 1.4 },
   },
 };
 
@@ -174,11 +172,11 @@ const cardFrames: Entity[] = CARD_X.map((cx, i) => ({
   },
 }));
 
-// Card titles — real text on each title bar.
+// Card titles — scale 0.6 keeps "BUILD" (29 raw → ~17) inside the card.
 const cardTitles: Entity[] = CARD_X.map((cx, i) => ({
   id: `card-title-${i}`,
-  position: { x: cx + 3, y: CARD_Y + 3 },
-  shape: { kind: "text", text: CARD_TITLES[i]!, fill: CARD_BODY },
+  position: { x: cx + 3, y: CARD_Y + 4 },
+  shape: { kind: "text", text: CARD_TITLES[i]!, fill: CARD_BODY, scale: 0.55 },
 }));
 
 // Card accent dots — small entities pulsing inside each card to draw the eye.
@@ -214,29 +212,29 @@ const footerFrame: Entity = {
   },
 };
 
-// Footer copy — real text entities at left and right of the footer.
+// Footer copy — small body text on either side.
 const footerLeft: Entity = {
   id: "footer-left",
-  position: { x: 4, y: 50 },
-  shape: { kind: "text", text: "MIT 2026", fill: TEXT },
+  position: { x: 8, y: 51 },
+  shape: { kind: "text", text: "MIT 2026", fill: TEXT, scale: 0.4 },
 };
 
 const footerRight: Entity = {
   id: "footer-right",
-  position: { x: 70, y: 50 },
-  shape: { kind: "text", text: "DOCS", fill: TEXT },
+  position: { x: 80, y: 51 },
+  shape: { kind: "text", text: "DOCS", fill: TEXT, scale: 0.4 },
 };
 
-// "GET STARTED" CTA — fades to draw attention. 11 chars × 5 + 10 = 65 wide,
-// pivot (32, 3) centers it on `position`.
+// "GET STARTED" CTA — scale 0.5: 65*0.5 ≈ 33 cells; pivot (16, 1.75) centers it.
 const footerCta: Entity = {
   id: "footer-cta",
-  position: { x: 50, y: 52 },
+  position: { x: 50, y: 51 },
   shape: {
     kind: "text",
     text: "GET STARTED",
     fill: ACCENT,
-    pivot: { x: 32, y: 3 },
+    scale: 0.5,
+    pivot: { x: 16, y: 1.75 },
   },
   animation: { kind: "fade", from: 0.5, to: 1.0, durationMs: 1300, repeat: "infinite" },
 };
