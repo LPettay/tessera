@@ -33,7 +33,7 @@ export type {
   TweenAnimation,
 } from "./core/scene.ts";
 
-export { rasterizeText, measureText } from "./core/text.ts";
+export { rasterizeText, measureText, placeText } from "./core/text.ts";
 export { FONT_WIDTH, FONT_HEIGHT } from "./core/text.ts";
 
 export { rect, grid, outline, gradient, lerpColor } from "./core/draw.ts";
