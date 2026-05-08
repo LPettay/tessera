@@ -38,11 +38,13 @@
     "build:examples": "bun run build:mug && bun run build:menu && bun run build:inventory && bun run build:landing && bun run build:rhythm && bun run build:breakapart && bun run build:windows && bun run build:gallery",
     "prepare": "bunx lefthook install || true",
     "test": "bun test",
-    "scope-review": "bun run scripts/scope-review.ts"
+    "scope-review": "bun run scripts/scope-review.ts",
+    "record-demo": "bun run scripts/record-demo.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "lefthook": "^1.7.0",
+    "puppeteer": "^24.43.0",
     "typescript": "^5.5.0"
   },
   "dependencies": {
