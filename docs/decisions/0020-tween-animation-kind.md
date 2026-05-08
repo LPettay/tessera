@@ -63,9 +63,12 @@ The demo:
    ~90 `VoxelSpriteCell` entries.
 2. Converts each cell to a standalone Entity positioned at `ORIGIN + cell.xy`.
 3. Assigns each entity a `tween` with radially outward `(dx, dy)`, `yoyo: true`,
-   `repeat: "infinite"`, and a deterministically jittered `durationMs` (700–1100 ms).
-4. Duration jitter desynchronises cells over 2-3 cycles, turning one synchronized burst into a
-   fluid shimmering wave.
+   `repeat: "infinite"`, and a shared `durationMs = 1600`. Magnitude is jittered per cell
+   so the explosion is visually varied at peak; duration is uniform so the whole word is
+   readably intact at every multiple of `2 × durationMs`.
+4. The intact → scatter → intact loop is the readable demo state. An earlier draft used
+   per-cell duration jitter for a "shimmering wave" effect, but it desynchronised the cells
+   so the original word never reformed visibly. Synchronisation won.
 
 ## Alternatives considered
 

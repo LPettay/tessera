@@ -4,8 +4,10 @@ The canonical demo for the `tween` Animation kind (ADR 0020). "TESSERA" is
 rasterized to its individual glyph-pixel cells via `rasterizeText()`, each
 cell is lifted into a standalone Entity, and each entity gets a `tween`
 animation flying it outward from the text centroid and back — `yoyo: true,
-repeat: "infinite"`. Duration jitter (700–1100 ms) desynchronises cells over
-time, turning the initial synchronized burst into a continuous shimmering wave.
+repeat: "infinite"`. All cells share `durationMs = 1600` so the cycle stays
+in phase: at every multiple of 3.2 s the word is readably intact, at every
+half-cycle the cells are at peak scatter. Magnitude jitter gives variety at
+peak without compromising the synchronized "home" state.
 
 ## Index
 
@@ -29,10 +31,11 @@ time, turning the initial synchronized burst into a continuous shimmering wave.
 ```bash
 bun run dev:breakapart
 # open http://localhost:3005
-# expected:
-#   - "TESSERA" glyphs explode outward from centre and reform, infinitely
-#   - cells travel at slightly different speeds (duration jitter)
-#   - the wave effect emerges after the first 1–2 cycles
+# expected (3.2 s loop):
+#   - t = 0:    "TESSERA" intact, gold-on-charcoal
+#   - t ≈ 1.6:  cells at peak scatter (fully exploded)
+#   - t = 3.2:  "TESSERA" intact again
+#   - cells travel different distances (magnitude jitter), uniform timing
 #   - label "VOXEL BREAKAPART" sits static near the bottom
 # switch tabs → animations pause; return → resume
 # OS reduced-motion → all freeze

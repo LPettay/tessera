@@ -52,13 +52,20 @@ const rawCells = rasterizeText({
 });
 
 /**
- * One Entity per glyph pixel. Each entity is a single square cell at
- * `ORIGIN + cell.position` (absolute layer coords), animated with a
- * `tween` that flies it outward from the text centroid and back.
+ * Single shared cycle so every cell is at home and at peak in unison.
+ * Without this, duration jitter would desynchronise cells over 2-3 cycles
+ * and "TESSERA" would never be readable again. The whole point of the
+ * demo is the intact → scatter → intact loop, so synchronisation matters
+ * more than per-cell variety.
+ *
+ * One full out-and-back cycle: 2 × ONE_WAY_MS. ease-in-out gives a
+ * natural slow zone at both endpoints, so the readable "TESSERA"
+ * frames last long enough to register.
  */
+const ONE_WAY_MS = 1600;
+
 const cellEntities: Entity[] = rawCells.map((cell, i) => {
   const j1 = hashU01(i * 127 + 1);
-  const j2 = hashU01(i * 113 + 2);
 
   // Outward direction from centroid.
   const ddx = cell.x - CX;
@@ -67,14 +74,10 @@ const cellEntities: Entity[] = rawCells.map((cell, i) => {
   const nx = ddx / dist;
   const ny = ddy / dist;
 
-  // Magnitude: 13–21 cells. Cells farther from centre travel slightly
-  // further so the explosion feels energetic at the edges.
-  const magnitude = 13 + j1 * 8 + dist * 0.12;
-
-  // Duration: 700–1100 ms per one-way trip. Varied so cells drift out of
-  // phase within 2-3 cycles, turning one synchronized burst into a fluid
-  // shimmering wave.
-  const durationMs = 700 + j2 * 400;
+  // Magnitude: 14–22 cells, with a small distance-dependent boost so
+  // edge cells fly a little further. Magnitude jitter keeps the peak
+  // state visually varied without breaking the shared-cycle invariant.
+  const magnitude = 14 + j1 * 6 + dist * 0.18;
 
   const cw = cell.w ?? SCALE;
   const ch = cell.h ?? SCALE;
@@ -91,7 +94,7 @@ const cellEntities: Entity[] = rawCells.map((cell, i) => {
       kind: "tween",
       dx: nx * magnitude,
       dy: ny * magnitude,
-      durationMs,
+      durationMs: ONE_WAY_MS,
       easing: "ease-in-out",
       yoyo: true,
       repeat: "infinite",
