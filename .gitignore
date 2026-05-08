@@ -36,3 +36,4 @@ yarn-debug.log*
 bun-debug.log*
 
 # Note: we DO commit bun.lock (text format) for reproducible builds
+.claude/
