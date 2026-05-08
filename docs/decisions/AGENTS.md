@@ -30,6 +30,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0019-text-shape-scale.md` | `TextShape.scale` — sub-cell glyph rendering for typography-scale text (Accepted) |
 | `0020-tween-animation-kind.md` | `tween` `Animation` kind — bounded eased translation with optional yoyo; `rasterizeText`/`measureText` graduate to public API (Accepted) |
 | `0021-voxel-cell-as-atom.md` | Tessera's atom is the 2D voxel-cell — load-bearing framing ADR; defines the L0–L5 abstraction stack future ADRs reference (Accepted) |
+| `0022-cell-drawing-helpers.md` | L1 drawing helpers — `rect` / `grid` / `outline` / `gradient` / `lerpColor` pure functions returning `VoxelSpriteCell[]` (Accepted) |
 
 When you add an ADR, add a row above and bump the number sequentially.
 
@@ -60,4 +61,4 @@ When you add an ADR, add a row above and bump the number sequentially.
 
 ---
 
-<!-- last-reviewed: ddb62ff -->
+<!-- last-reviewed: 030f15b -->

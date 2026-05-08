@@ -36,6 +36,8 @@ export type {
 export { rasterizeText, measureText } from "./core/text.ts";
 export { FONT_WIDTH, FONT_HEIGHT } from "./core/text.ts";
 
+export { rect, grid, outline, gradient, lerpColor } from "./core/draw.ts";
+
 export type {
   Renderer,
   RendererCapabilities,

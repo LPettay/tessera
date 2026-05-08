@@ -26,8 +26,13 @@ TweenAnimation
 VectorSegment
 VoxelSpriteCell
 WedgeSegment
+gradient
+grid
+lerpColor
 measureText
+outline
 rasterizeText
+rect
 sunburstGenerator
 svgRenderer
 withPageCitizenship
