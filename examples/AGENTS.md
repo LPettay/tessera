@@ -14,6 +14,7 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 | `inventory-svg/` | [`inventory-svg/AGENTS.md`](./inventory-svg/AGENTS.md) | JRPG-style inventory / status screen — portrait + plume + HP/MP plate + equipment grid + dialogue. Denser layout than menu-svg. |
 | `landing-svg/` | [`landing-svg/AGENTS.md`](./landing-svg/AGENTS.md) | Stylized voxel-cell landing page — nav, hero T-mark with glow, three feature cards, footer with fading CTA. Demonstrates the README's marketing-hero-as-Scene wedge. |
 | `rhythm-svg/` | [`rhythm-svg/AGENTS.md`](./rhythm-svg/AGENTS.md) | Rhythm-game HUD — lanes, drifting notes, spinning vector receptors, score/combo, groove bar, side avatars, EQ-style visualizer bars. Densest demo; uses every Animation kind. |
+| `breakapart-svg/` | [`breakapart-svg/AGENTS.md`](./breakapart-svg/AGENTS.md) | Canonical `tween` demo — "TESSERA" decomposed into per-cell entities, each flying outward and back via `ease-in-out yoyo tween`. ADR 0020. |
 
 ### Planned (not yet created)
 
@@ -32,12 +33,13 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 ## Dev workflow
 
 ```bash
-bun run dev:gallery     # gallery hub  at http://localhost:3005   ← start here
-bun run dev:mug         # mug-svg      at http://localhost:3000
-bun run dev:menu        # menu-svg     at http://localhost:3001
-bun run dev:inventory   # inventory    at http://localhost:3002
-bun run dev:landing     # landing      at http://localhost:3003
-bun run dev:rhythm      # rhythm       at http://localhost:3004
+bun run dev:gallery      # gallery hub   at http://localhost:3006   ← start here
+bun run dev:mug          # mug-svg       at http://localhost:3000
+bun run dev:menu         # menu-svg      at http://localhost:3001
+bun run dev:inventory    # inventory     at http://localhost:3002
+bun run dev:landing      # landing       at http://localhost:3003
+bun run dev:rhythm       # rhythm        at http://localhost:3004
+bun run dev:breakapart   # breakapart    at http://localhost:3005
 ```
 
 Each example registers a top-level script in `package.json` of the form `dev:<example-name>`.

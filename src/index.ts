@@ -30,7 +30,11 @@ export type {
   BobAnimation,
   FadeAnimation,
   DriftAnimation,
+  TweenAnimation,
 } from "./core/scene.ts";
+
+export { rasterizeText, measureText } from "./core/text.ts";
+export { FONT_WIDTH, FONT_HEIGHT } from "./core/text.ts";
 
 export type {
   Renderer,

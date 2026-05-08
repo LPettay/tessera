@@ -16,6 +16,7 @@ import { menuScene } from "../menu-svg/scene.ts";
 import { inventoryScene } from "../inventory-svg/scene.ts";
 import { landingScene } from "../landing-svg/scene.ts";
 import { rhythmScene } from "../rhythm-svg/scene.ts";
+import { breakapartScene } from "../breakapart-svg/scene.ts";
 
 export type GalleryEntry = {
   /** Stable id, used in the URL hash for deep-linking. */
@@ -64,5 +65,12 @@ export const galleryScenes: GalleryEntry[] = [
     blurb: "Densest demo — every Animation kind in one frame.",
     kinds: ["oscillate", "spin", "pulse", "bob", "fade", "drift"],
     scene: rhythmScene,
+  },
+  {
+    id: "breakapart",
+    label: "Breakapart",
+    blurb: "Per-cell tween: each glyph pixel is an independent entity.",
+    kinds: ["tween"],
+    scene: breakapartScene,
   },
 ];

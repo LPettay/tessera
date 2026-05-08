@@ -214,6 +214,8 @@ export type VoxelSpriteCell = {
  *    `oscillate` (rotate), `pulse` (scale), `bob` (translate-Y), `fade` (opacity).
  *  - Continuous-family (constant rate, unbounded):
  *    `spin` (rotate), `drift` (translate).
+ *  - Tween-family (eased bounded translation):
+ *    `tween` (translate to offset, optional yoyo). See ADR 0020.
  *
  * Composition (multiple animations on one entity) is intentionally not
  * supported here — that's a future ADR. Today an entity has at most one
@@ -226,7 +228,8 @@ export type Animation =
   | PulseAnimation
   | BobAnimation
   | FadeAnimation
-  | DriftAnimation;
+  | DriftAnimation
+  | TweenAnimation;
 
 /**
  * Sine-eased back-and-forth rotation.
@@ -315,11 +318,42 @@ export type FadeAnimation = {
  *
  * Drift has no `repeat` — linear translation has no natural iteration
  * boundary, unlike rotation (full revolution) or oscillation (one cycle).
- * For a one-shot bounded translation, a future tween kind is the right
- * fit.
+ * For a one-shot bounded translation, use `tween`.
  */
 export type DriftAnimation = {
   kind: "drift";
   /** Velocity in cells per second. Direction is encoded in the vector. */
   velocity: { x: number; y: number };
+};
+
+/**
+ * Eased translation to a fixed offset and, optionally, back again.
+ *
+ * The entity translates from its resting `position` (offset 0,0) to
+ * `position + (dx, dy)` over `durationMs`. With `yoyo: true` each forward
+ * pass is followed by an equal-length reverse pass — one full cycle is
+ * `2 × durationMs`. `repeat` counts complete cycles.
+ *
+ * Useful for: explosion/reform effects (per-cell entities with radial
+ * offsets), slide-in panels, bounce arrivals, or any bounded one-way or
+ * back-and-forth translation. See ADR 0020.
+ */
+export type TweenAnimation = {
+  kind: "tween";
+  /** Target X displacement from `entity.position` in cells. */
+  dx: number;
+  /** Target Y displacement from `entity.position` in cells. */
+  dy: number;
+  /** Duration of one trip (forward, or backward when yoyo) in ms. */
+  durationMs: number;
+  /** Easing applied to each trip. Default `"ease-in-out"`. */
+  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out";
+  /**
+   * When true, each forward trip is immediately followed by a reverse trip
+   * back to the origin — the entity oscillates between rest and target.
+   * One `repeat` unit = one forward + one backward trip.
+   */
+  yoyo?: boolean;
+  /** Iteration count: a positive integer or `"infinite"`. */
+  repeat: number | "infinite";
 };
