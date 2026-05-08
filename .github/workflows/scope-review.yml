@@ -1,0 +1,53 @@
+name: scope-review
+
+# Runs after every PR merges to main. Calls Claude to analyse the diff
+# and automatically opens GitHub issues for concrete improvement opportunities
+# it identifies. Issues are labelled "scope-review" for easy triage.
+#
+# Required repository secret: ANTHROPIC_API_KEY
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  review:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Ensure the "scope-review" label exists before the script tries to
+      # apply it. --force is a no-op if the label already exists.
+      - name: Ensure scope-review label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "scope-review" \
+            --description "Opened automatically by the post-merge scope-review bot" \
+            --color "0075ca" \
+            --repo ${{ github.repository }} \
+            --force
+
+      - name: Run scope review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bun run scope-review
