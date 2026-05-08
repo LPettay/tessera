@@ -27,7 +27,7 @@
  */
 
 import type { Entity, Layer, SceneFragment, VoxelSpriteCell } from "../../src/index.ts";
-import { gradient, grid, measureText, outline, rasterizeText, rect } from "../../src/index.ts";
+import { gradient, grid, measureText, outline, placeText, rect } from "../../src/index.ts";
 import type { LayerDims } from "./theme.ts";
 import {
   BIN_GRAY,
@@ -218,16 +218,7 @@ export function taskbar(opts: {
   const startLabelM = measureText({ text: "START", scale: TASKBAR_TEXT_SCALE });
   // Vertically center within the full button height (text overpaints bevel edges).
   const startLabelY = startY + (startH - startLabelM.height) / 2;
-  const startLabel = rasterizeText({
-    kind: "text",
-    text: "START",
-    fill: TEXT_DARK,
-    scale: TASKBAR_TEXT_SCALE,
-  }).map((cell) => ({
-    ...cell,
-    x: cell.x + startX + 4,
-    y: cell.y + startLabelY,
-  }));
+  const startLabel = placeText("START", startX + 4, startLabelY, TASKBAR_TEXT_SCALE, TEXT_DARK);
   // Tiny yellow flag block to fake the Win98 logo.
   const flag: VoxelSpriteCell[] = [
     { x: startX + 2, y: startY + 1, fill: FOLDER_YELLOW },
@@ -247,16 +238,7 @@ export function taskbar(opts: {
   ];
   const clockM = measureText({ text: clockText, scale: TASKBAR_TEXT_SCALE });
   const clockLabelY = trayY + 1 + Math.max(0, (trayH - 2 - clockM.height) / 2);
-  const clockCells = rasterizeText({
-    kind: "text",
-    text: clockText,
-    fill: TEXT_DARK,
-    scale: TASKBAR_TEXT_SCALE,
-  }).map((cell) => ({
-    ...cell,
-    x: cell.x + trayX + 3,
-    y: cell.y + clockLabelY,
-  }));
+  const clockCells = placeText(clockText, trayX + 3, clockLabelY, TASKBAR_TEXT_SCALE, TEXT_DARK);
 
   const allCells: VoxelSpriteCell[] = [
     ...face,
@@ -325,16 +307,7 @@ export function windowChrome(opts: {
   // 4) Title text — left-aligned, vertically centered in the gradient region.
   const titleTextM = measureText({ text: title, scale: TITLE_SCALE });
   const titleTextOffsetY = (titleBarH - titleTextM.height) / 2;
-  const titleCells = rasterizeText({
-    kind: "text",
-    text: title,
-    fill: TITLE_TEXT,
-    scale: TITLE_SCALE,
-  }).map((cell) => ({
-    ...cell,
-    x: cell.x + titleX + 1,
-    y: cell.y + titleY + titleTextOffsetY,
-  }));
+  const titleCells = placeText(title, titleX + 1, titleY + titleTextOffsetY, TITLE_SCALE, TITLE_TEXT);
 
   // 5) Close-button area on the right of the title bar — small gray square
   //    with a black "X". ~3×3 cells.
@@ -356,16 +329,7 @@ export function windowChrome(opts: {
   // 6) Body text (optional). Renders inside the body region with a small
   //    inset.
   const bodyTextCells: VoxelSpriteCell[] = opts.bodyText
-    ? rasterizeText({
-        kind: "text",
-        text: opts.bodyText,
-        fill: TEXT_DARK,
-        scale: 0.6,
-      }).map((cell) => ({
-        ...cell,
-        x: cell.x + x + 4,
-        y: cell.y + y + titleH + 2,
-      }))
+    ? placeText(opts.bodyText, x + 4, y + titleH + 2, 0.6, TEXT_DARK)
     : [];
 
   const allCells: VoxelSpriteCell[] = [
@@ -410,35 +374,14 @@ export function desktopIcon(opts: {
 
   // Label — center horizontally under the icon.
   const labelScale = 0.5;
-  const labelCells = rasterizeText({
-    kind: "text",
-    text: label,
-    fill: TEXT_LIGHT,
-    scale: labelScale,
-  });
-  // Width of the rasterized label in cells (post-scale).
-  const labelW = labelText_w(label, labelScale);
+  const labelW = measureText({ text: label, scale: labelScale }).width;
   const labelX = x + 3 - labelW / 2;
   const labelY = y + 8;
-  const placedLabel = labelCells.map((cell) => ({
-    ...cell,
-    x: cell.x + labelX,
-    y: cell.y + labelY,
-  }));
+  const placedLabel = placeText(label, labelX, labelY, labelScale, TEXT_LIGHT);
 
   const allCells: VoxelSpriteCell[] = [...iconCells, ...placedLabel];
 
   return [emptyUiLayer(dims, { entities: entitiesFromCells(idPrefix, "icon", allCells) })];
-}
-
-/** Approximate post-scale width in cells of a one-line ASCII label. */
-function labelText_w(text: string, scale: number): number {
-  // Same formula as `measureText`, inlined to avoid the import for one number.
-  const FONT_W = 5;
-  const LETTER_SPACING = 1;
-  const n = text.length;
-  if (n === 0) return 0;
-  return (n * FONT_W + (n - 1) * LETTER_SPACING) * scale;
 }
 
 /**

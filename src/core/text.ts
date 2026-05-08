@@ -192,6 +192,26 @@ export function rasterizeText(shape: TextShape): VoxelSpriteCell[] {
 }
 
 /**
+ * Rasterize and position text in one call.
+ *
+ * Equivalent to `rasterizeText({...}).map(c => ({...c, x: c.x + x, y: c.y + y}))`.
+ * Use `measureText` first when you need to compute the origin (e.g. centering).
+ */
+export function placeText(
+  text: string,
+  x: number,
+  y: number,
+  scale: number,
+  fill: string,
+): VoxelSpriteCell[] {
+  return rasterizeText({ kind: "text", text, fill, scale }).map((c) => ({
+    ...c,
+    x: c.x + x,
+    y: c.y + y,
+  }));
+}
+
+/**
  * Pixel-cell footprint of a rendered text shape (post-scale) — useful
  * for centering a text entity inside a parent without rasterizing twice.
  * Returns the unrotated bounding box in entity-local cell units.
