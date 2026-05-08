@@ -4,6 +4,10 @@
 
 Pluggable renderer (SVG / Canvas2D / WebGL2). Dynamic entities. Page-citizenship defaults so a hero scene doesn't burn battery. Built to grow into a 2D game engine without rewriting userland code.
 
+![Tessera — voxel breakapart demo](./docs/media/breakapart-demo.gif)
+
+*"TESSERA" — every glyph pixel is an independent entity, animated via a per-cell `tween` that flies it radially outward and back. Live: [lpettay.github.io/tessera/#breakapart](https://lpettay.github.io/tessera/#breakapart).*
+
 > **Status:** pre-alpha (v0). API will change. Don't depend on it yet.
 
 ---
@@ -33,9 +37,46 @@ bun add tessera-engine
 
 > Package: `tessera-engine`. Brand: Tessera. (Bare `tessera` on NPM is a long-running map tile server in an unrelated domain.)
 
+## Live demos
+
+The gallery hub at **[lpettay.github.io/tessera](https://lpettay.github.io/tessera/)** cycles through every demo (`←`/`→` to navigate, `1`–`6` to jump):
+
+| Demo | URL |
+|---|---|
+| Mug — original `oscillate` + `spin` | [`/#mug`](https://lpettay.github.io/tessera/#mug) |
+| Title menu — `pulse` / `bob` / `fade` / `drift` | [`/#menu`](https://lpettay.github.io/tessera/#menu) |
+| Inventory — JRPG status screen | [`/#inventory`](https://lpettay.github.io/tessera/#inventory) |
+| Landing — voxel marketing hero | [`/#landing`](https://lpettay.github.io/tessera/#landing) |
+| Rhythm HUD — every animation kind in one frame | [`/#rhythm`](https://lpettay.github.io/tessera/#rhythm) |
+| Breakapart — `tween` + per-cell decomposition | [`/#breakapart`](https://lpettay.github.io/tessera/#breakapart) |
+
 ## Quick start
 
-*Coming when v0.1 ships an actual API surface. Right now this repo contains only the dev substrate — `src/` is a placeholder.*
+```bash
+bun add tessera-engine
+```
+
+```ts
+import { svgRenderer, withPageCitizenship, type Scene } from "tessera-engine";
+
+const scene: Scene = {
+  layers: [{
+    id: "main", cellSize: 12, width: 40, height: 20,
+    zIndex: 0, opacity: 1, visible: true,
+    entities: [{
+      id: "hello",
+      position: { x: 20, y: 10 },
+      shape: { kind: "text", text: "HELLO", fill: "#ffd166", scale: 0.6 },
+      animation: { kind: "pulse", from: 1, to: 1.1, durationMs: 1800, repeat: "infinite" },
+    }],
+  }],
+};
+
+const inner = svgRenderer.mount(document.getElementById("scene")!, scene);
+const controller = withPageCitizenship(inner, document.getElementById("scene")!);
+```
+
+Scenes are pure data. Renderers consume them. The same `Scene` will run through Canvas2D and WebGL2 tiers as those ship.
 
 ## Architecture
 
@@ -59,9 +100,10 @@ See [`docs/architecture.md`](./docs/architecture.md) and the ADRs in [`docs/deci
 
 ```
 .
-├── docs/                    Architecture, ADRs
+├── docs/                    Architecture, ADRs, embedded media
+├── examples/                Live demo scenes (mug, menu, inventory, landing, rhythm, breakapart, gallery hub)
 ├── scripts/                 Repo-hygiene tooling (check, stamp, worktree)
-├── src/                     Framework source (placeholder for v0)
+├── src/                     Framework source (core types + SVG renderer + page citizenship)
 ├── AGENTS.md                Top-level agent instructions
 ├── CONTRIBUTING.md          PR + workflow conventions
 └── README.md
