@@ -4,6 +4,10 @@
 
 Pluggable renderer (SVG / Canvas2D / WebGL2). Dynamic entities. Page-citizenship defaults so a hero scene doesn't burn battery. Built to grow into a 2D game engine without rewriting userland code.
 
+![Tessera — voxel cursor field demo](./docs/media/windows-cursor-field-demo.gif)
+
+*Win98-style desktop where every voxel of the UI dissolves under the cursor. Built from cell drawing helpers (`rect`, `grid`, `outline`, `gradient`), composed via `composeScene(...fragments)`, and reactive via `controller.onFrame((ctx) => ctx.setOffset(...))`. Live: [lpettay.github.io/tessera/#windows](https://lpettay.github.io/tessera/#windows).*
+
 ![Tessera — voxel breakapart demo](./docs/media/breakapart-demo.gif)
 
 *"TESSERA" — every glyph pixel is an independent entity, animated via a per-cell `tween` that flies it radially outward and back. Live: [lpettay.github.io/tessera/#breakapart](https://lpettay.github.io/tessera/#breakapart).*
@@ -39,7 +43,7 @@ bun add tessera-engine
 
 ## Live demos
 
-The gallery hub at **[lpettay.github.io/tessera](https://lpettay.github.io/tessera/)** cycles through every demo (`←`/`→` to navigate, `1`–`6` to jump):
+The gallery hub at **[lpettay.github.io/tessera](https://lpettay.github.io/tessera/)** cycles through every demo (`←`/`→` to navigate, `1`–`7` to jump):
 
 | Demo | URL |
 |---|---|
@@ -49,6 +53,7 @@ The gallery hub at **[lpettay.github.io/tessera](https://lpettay.github.io/tesse
 | Landing — voxel marketing hero | [`/#landing`](https://lpettay.github.io/tessera/#landing) |
 | Rhythm HUD — every animation kind in one frame | [`/#rhythm`](https://lpettay.github.io/tessera/#rhythm) |
 | Breakapart — `tween` + per-cell decomposition | [`/#breakapart`](https://lpettay.github.io/tessera/#breakapart) |
+| Windows — Win98 desktop with cursor-driven voxel field | [`/#windows`](https://lpettay.github.io/tessera/#windows) |
 
 ## Quick start
 

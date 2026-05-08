@@ -31,14 +31,23 @@
     "build:rhythm": "bun run examples/rhythm-svg/build.ts",
     "dev:breakapart": "bun run examples/breakapart-svg/dev.ts",
     "build:breakapart": "bun run examples/breakapart-svg/build.ts",
+    "dev:windows": "bun run examples/windows-svg/dev.ts",
+    "build:windows": "bun run examples/windows-svg/build.ts",
     "dev:gallery": "bun run examples/gallery-svg/dev.ts",
     "build:gallery": "bun run examples/gallery-svg/build.ts",
-    "build:examples": "bun run build:mug && bun run build:menu && bun run build:inventory && bun run build:landing && bun run build:rhythm && bun run build:breakapart && bun run build:gallery",
-    "prepare": "bunx lefthook install || true"
+    "build:examples": "bun run build:mug && bun run build:menu && bun run build:inventory && bun run build:landing && bun run build:rhythm && bun run build:breakapart && bun run build:windows && bun run build:gallery",
+    "prepare": "bunx lefthook install || true",
+    "test": "bun test",
+    "scope-review": "bun run scripts/scope-review.ts",
+    "record-demo": "bun run scripts/record-demo.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "lefthook": "^1.7.0",
+    "puppeteer": "^24.43.0",
     "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1"
   }
 }
