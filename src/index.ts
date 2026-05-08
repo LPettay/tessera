@@ -46,6 +46,8 @@ export type {
   RendererCapabilities,
   RendererController,
   RendererTier,
+  FrameCallback,
+  FrameContext,
 } from "./core/renderer.ts";
 
 export type {

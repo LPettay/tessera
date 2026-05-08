@@ -1,5 +1,10 @@
 import type { Entity, Layer, Scene } from "../../core/scene.ts";
-import type { Renderer, RendererController } from "../../core/renderer.ts";
+import type {
+  FrameCallback,
+  FrameContext,
+  Renderer,
+  RendererController,
+} from "../../core/renderer.ts";
 import { rasterizeText } from "../../core/text.ts";
 import {
   SVG_NS,
@@ -33,12 +38,36 @@ export const svgRenderer: Renderer = {
   },
 };
 
+/**
+ * Per-entity reference for the L4 offset layer (ADR 0024). Captures
+ * everything we need to apply (or revert) a per-frame translation
+ * regardless of whether the entity also has a declared `Animation`.
+ */
+type EntityRef = {
+  group: SVGGElement;
+  baseTransform: string;
+  cellSize: number;
+  /** True if this entity is in the `entities[]` runtime list, so its
+   *  transform is rewritten every animated tick. False for static
+   *  entities — we have to manage their transform ourselves. */
+  animated: boolean;
+};
+
 function mountSvg(container: HTMLElement, initial: Scene): RendererController {
   let scene = initial;
   let mounted = true;
   let paused = false;
   let rafHandle: number | null = null;
   let entities: EntityRuntime[] = [];
+
+  // L4 — onFrame interactivity (ADR 0024).
+  const entityRefs = new Map<string, EntityRef>();
+  const frameCallbacks: FrameCallback[] = [];
+  let currentOffsets = new Map<string, { dx: number; dy: number }>();
+  let previousOffsets = new Map<string, { dx: number; dy: number }>();
+  let cursor: { x: number; y: number } | null = null;
+  let sceneStartedAt = 0;
+  let lastFrameTime = 0;
 
   const svg = document.createElementNS(SVG_NS, "svg");
   svg.setAttribute("shape-rendering", "crispEdges");
@@ -47,12 +76,35 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
   svg.style.transformStyle = "preserve-3d";
   container.appendChild(svg);
 
+  // Native cursor tracking. Convert clientX/Y to viewBox space via the
+  // SVG's screen CTM — handles preserveAspectRatio and CSS scaling
+  // correctly without us hand-rolling the math.
+  function onPointerMove(e: PointerEvent): void {
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const local = pt.matrixTransform(ctm.inverse());
+    cursor = { x: local.x, y: local.y };
+  }
+  function onPointerLeave(): void {
+    cursor = null;
+  }
+  svg.addEventListener("pointermove", onPointerMove);
+  svg.addEventListener("pointerleave", onPointerLeave);
+
   build();
   start();
 
   function build(): void {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     entities = [];
+    entityRefs.clear();
+    currentOffsets = new Map();
+    previousOffsets = new Map();
+    sceneStartedAt = 0;
+    lastFrameTime = 0;
 
     const visible = scene.layers.filter((l) => l.visible);
     const { width, height } = unionPixelSize(visible);
@@ -77,6 +129,12 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
     for (const entity of layer.entities) {
       const built = buildEntity(entity, layer.cellSize);
       g.appendChild(built.group);
+      entityRefs.set(`${layer.id}:${entity.id}`, {
+        group: built.group,
+        baseTransform: built.baseTransform,
+        cellSize: layer.cellSize,
+        animated: built.animated !== null,
+      });
       if (built.animated) entities.push(built.animated);
     }
   }
@@ -84,7 +142,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
   function buildEntity(
     entity: Entity,
     cellSize: number,
-  ): { group: SVGGElement; animated: EntityRuntime | null } {
+  ): { group: SVGGElement; animated: EntityRuntime | null; baseTransform: string } {
     const group = document.createElementNS(SVG_NS, "g");
     group.setAttribute("class", "tessera-entity");
     group.setAttribute("id", `tessera-entity-${entity.id}`);
@@ -109,7 +167,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
     group: SVGGElement,
     entity: Entity,
     cellSize: number,
-  ): { group: SVGGElement; animated: EntityRuntime | null } {
+  ): { group: SVGGElement; animated: EntityRuntime | null; baseTransform: string } {
     if (entity.shape.kind !== "voxel-sprite") {
       throw new Error("buildVoxelEntity: expected voxel-sprite shape");
     }
@@ -138,7 +196,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       group.appendChild(buildVoxelCell(cell, cellSize));
     }
 
-    if (!entity.animation) return { group, animated: null };
+    if (!entity.animation) return { group, animated: null, baseTransform };
 
     const animated: EntityRuntime = {
       kind: "voxel",
@@ -151,25 +209,20 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       startedAt: 0,
       periodLimit: periodLimitFor(entity.animation),
     };
-    return { group, animated };
+    return { group, animated, baseTransform };
   }
 
   function buildVectorEntity(
     group: SVGGElement,
     entity: Entity,
     cellSize: number,
-  ): { group: SVGGElement; animated: EntityRuntime | null } {
+  ): { group: SVGGElement; animated: EntityRuntime | null; baseTransform: string } {
     if (entity.shape.kind !== "vector") {
       throw new Error("buildVectorEntity: expected vector shape");
     }
 
     const tx = entity.position.x * cellSize;
     const ty = entity.position.y * cellSize;
-    // Vector entities use ONLY a translate transform on the group for
-    // position. Rotation is applied to segment endpoints in cell-space and
-    // rasterized to axis-aligned cells per frame — pixels stay locked to
-    // the grid (ADR 0014). Non-rotation animations (pulse/bob/fade/drift)
-    // layer additional CSS transforms on top of `baseTransform`.
     const baseTransform = `translate(${tx}px, ${ty}px)`;
     group.style.transform = baseTransform;
     group.style.transformOrigin = "0 0";
@@ -191,7 +244,7 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       group.appendChild(buildCell(cell, cellSize));
     }
 
-    if (!entity.animation) return { group, animated: null };
+    if (!entity.animation) return { group, animated: null, baseTransform };
 
     const animated: EntityRuntime = {
       kind: "vector",
@@ -204,21 +257,45 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       startedAt: 0,
       periodLimit: periodLimitFor(entity.animation),
     };
-    return { group, animated };
+    return { group, animated, baseTransform };
+  }
+
+  function setOffset(layerId: string, entityId: string, dx: number, dy: number): void {
+    const key = `${layerId}:${entityId}`;
+    if (!entityRefs.has(key)) return;
+    currentOffsets.set(key, { dx, dy });
   }
 
   function tick(now: number): void {
     rafHandle = null;
     if (!mounted || paused) return;
 
+    if (sceneStartedAt === 0) sceneStartedAt = now;
+    const dt = lastFrameTime === 0 ? 0 : now - lastFrameTime;
+    lastFrameTime = now;
+
+    // Phase 1 — run user callbacks. They populate `currentOffsets` via
+    // setOffset for any entity they want displaced this frame.
+    previousOffsets = currentOffsets;
+    currentOffsets = new Map();
+    if (frameCallbacks.length > 0) {
+      const ctx: FrameContext = {
+        elapsed: now - sceneStartedAt,
+        dt,
+        cursor,
+        setOffset,
+      };
+      for (const cb of frameCallbacks) cb(ctx);
+    }
+
+    // Phase 2 — apply declared animations. Each entity writes its full
+    // baseTransform + animation transform; offsets are layered after.
     let anyAlive = false;
     for (const e of entities) {
       if (e.startedAt === 0) e.startedAt = now;
       const elapsed = now - e.startedAt;
 
       if (e.periodLimit !== null && isPeriodComplete(e.animation, elapsed, e.periodLimit)) {
-        // Settle the entity into its rest state once. Subsequent ticks won't
-        // run because anyAlive stays false.
         applyNeutral(e);
         continue;
       }
@@ -226,15 +303,46 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       applyAnimation(e, elapsed);
     }
 
-    // Once every entity has finished its repeat count, let the loop go dormant
-    // rather than churning RAF callbacks. setScene/resume restart it.
-    if (anyAlive) rafHandle = requestAnimationFrame(tick);
+    // Phase 3 — apply per-frame offsets. Animated entities had their
+    // transform rewritten in Phase 2 (or settled by applyNeutral); we
+    // append the offset translate. Static entities keep their
+    // baseTransform unless an offset is active.
+    //
+    // Reset transforms for entities that had an offset last frame but
+    // not this one — applies only to static entities, since animated
+    // ones are already re-set every tick by Phase 2.
+    for (const key of previousOffsets.keys()) {
+      if (currentOffsets.has(key)) continue;
+      const ref = entityRefs.get(key);
+      if (ref && !ref.animated) {
+        ref.group.style.transform = ref.baseTransform;
+      }
+    }
+    for (const [key, offset] of currentOffsets) {
+      const ref = entityRefs.get(key);
+      if (!ref) continue;
+      const px = offset.dx * ref.cellSize;
+      const py = offset.dy * ref.cellSize;
+      const baseT = ref.animated ? ref.group.style.transform : ref.baseTransform;
+      ref.group.style.transform = `${baseT} translate(${px}px, ${py}px)`;
+    }
+
+    // Keep the loop alive while any animation is running OR any callback
+    // is registered. A static scene with cursor reactivity has zero
+    // animated entities but must still tick to read cursor + run
+    // callbacks; without this, the cursor field would freeze after the
+    // first frame.
+    if (anyAlive || frameCallbacks.length > 0) {
+      rafHandle = requestAnimationFrame(tick);
+    }
   }
 
   function start(): void {
     if (rafHandle !== null || paused || !mounted) return;
-    if (entities.length === 0) return;
+    if (entities.length === 0 && frameCallbacks.length === 0) return;
     for (const e of entities) e.startedAt = 0;
+    sceneStartedAt = 0;
+    lastFrameTime = 0;
     rafHandle = requestAnimationFrame(tick);
   }
 
@@ -269,12 +377,30 @@ function mountSvg(container: HTMLElement, initial: Scene): RendererController {
       build();
       if (!paused) start();
     },
+    onFrame(callback: FrameCallback): () => void {
+      if (!mounted) return () => {};
+      frameCallbacks.push(callback);
+      // Re-arm the loop in case it was dormant (no animated entities).
+      start();
+      return () => {
+        const idx = frameCallbacks.indexOf(callback);
+        if (idx >= 0) frameCallbacks.splice(idx, 1);
+      };
+    },
+    setCursor(next: { x: number; y: number } | null): void {
+      if (!mounted) return;
+      cursor = next;
+    },
     dispose(): void {
       if (!mounted) return;
       mounted = false;
       stop();
+      svg.removeEventListener("pointermove", onPointerMove);
+      svg.removeEventListener("pointerleave", onPointerLeave);
       if (svg.parentNode === container) container.removeChild(svg);
       entities = [];
+      entityRefs.clear();
+      frameCallbacks.length = 0;
     },
   };
 }

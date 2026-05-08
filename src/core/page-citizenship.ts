@@ -1,4 +1,4 @@
-import type { RendererController } from "./renderer.ts";
+import type { FrameCallback, RendererController } from "./renderer.ts";
 
 /**
  * Page-citizenship wrapper.
@@ -92,6 +92,12 @@ export function withPageCitizenship(
     },
     setScene(next) {
       inner.setScene(next);
+    },
+    onFrame(callback: FrameCallback) {
+      return inner.onFrame(callback);
+    },
+    setCursor(next) {
+      inner.setCursor(next);
     },
     dispose() {
       if (!mounted) return;

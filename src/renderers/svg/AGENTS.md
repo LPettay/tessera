@@ -8,7 +8,7 @@ Tier 1 renderer. SVG output, vanilla DOM, `requestAnimationFrame`-driven. The fi
 
 | File | Purpose |
 |---|---|
-| `svg-renderer.ts` | The `svgRenderer` implementation — builds an `<svg>` tree from a `Scene` and runs the animation loop. |
+| `svg-renderer.ts` | The `svgRenderer` implementation — builds an `<svg>` tree from a `Scene`, runs the animation loop, dispatches `onFrame` callbacks, and applies per-frame entity offsets (ADR 0024). |
 | `svg-helpers.ts` | Pure helpers (rect builders, oscillation math, viewBox sizing, centroid). Split out so `svg-renderer.ts` stays under the per-file size budget. |
 | `index.ts` | Single re-export of `svgRenderer`. |
 
@@ -19,7 +19,8 @@ Tier 1 renderer. SVG output, vanilla DOM, `requestAnimationFrame`-driven. The fi
 - **Depend only on `src/core/`.** Do not import from `canvas2d/`, `webgl2/`, or any sibling renderer.
 - **Capability ceiling: 500 cells per layer, no particles.** This is the published `capabilities` value; do not raise it without measuring.
 - **`setScene` rebuilds, not diffs.** v0.1 tears down child elements and rebuilds. Real diffing is a post-v0.1 optimization.
-- **Animation support is intentionally narrow.** Only `oscillate` with `axis: "y"` is implemented. `axis: "x"` and `axis: "z"` are accepted at the type level (because `core/scene.ts` defines them) but render as no-ops in v0.1.
+- **Animation support covers the full v0.2 union** — `oscillate` (y-axis only), `spin` (z-axis only), `pulse`, `bob`, `fade`, `drift`, `tween`. `oscillate.axis = "x"`/`"z"` and `spin.axis = "x"`/`"y"` are type-reserved but render as no-ops in v0.1. Higher tiers may implement them later.
+- **Per-frame callbacks compose additively with declared animations** (ADR 0024). The tick runs callbacks → animations → offset application in three phases; offsets translate on top of any animation transform.
 
 ## What does NOT live here
 
@@ -29,4 +30,4 @@ Tier 1 renderer. SVG output, vanilla DOM, `requestAnimationFrame`-driven. The fi
 
 ---
 
-<!-- last-reviewed: 2a93c31 -->
+<!-- last-reviewed: 99be9bf -->

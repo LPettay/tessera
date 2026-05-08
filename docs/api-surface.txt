@@ -8,6 +8,8 @@ EntityShape
 FONT_HEIGHT
 FONT_WIDTH
 FadeAnimation
+FrameCallback
+FrameContext
 GeneratorGeometry
 GeneratorOutput
 Layer
