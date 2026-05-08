@@ -33,6 +33,10 @@ if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
 (globalThis as { __tessera?: unknown }).__tessera = controller;
 
+// Track the active entry's setup teardown so we can dispose it before
+// switching scenes (cursor fields, onFrame callbacks, etc.).
+let teardown: (() => void) | null = initial.setup ? initial.setup(controller) : null;
+
 // --- Build the nav strip ---------------------------------------------- //
 
 const navButtons: HTMLButtonElement[] = galleryScenes.map((entry, i) => {
@@ -63,6 +67,12 @@ function activate(idx: number): void {
   if (idx === activeIndex) return;
   const entry = galleryScenes[idx];
   if (!entry) return;
+  // Tear down any imperative state from the previous entry (onFrame
+  // callbacks, listeners) before swapping the Scene.
+  if (teardown) {
+    teardown();
+    teardown = null;
+  }
   activeIndex = idx;
   // setScene rebuilds the SVG contents and restarts the animation loop.
   // The renderer reads layer dimensions from the new Scene, so demos with
@@ -71,6 +81,7 @@ function activate(idx: number): void {
   // setScene replaces the inner <svg>; reapply the crop attribute.
   const next = container.querySelector("svg");
   if (next) next.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  if (entry.setup) teardown = entry.setup(controller);
   applyChrome(idx);
 }
 

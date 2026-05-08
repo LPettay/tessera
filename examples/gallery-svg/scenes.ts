@@ -9,7 +9,7 @@
  * up automatically. Order in this array is the cycle order.
  */
 
-import type { Scene } from "../../src/index.ts";
+import type { RendererController, Scene } from "../../src/index.ts";
 
 import { coffeeShopScene } from "../mug-svg/scene.ts";
 import { menuScene } from "../menu-svg/scene.ts";
@@ -17,6 +17,8 @@ import { inventoryScene } from "../inventory-svg/scene.ts";
 import { landingScene } from "../landing-svg/scene.ts";
 import { rhythmScene } from "../rhythm-svg/scene.ts";
 import { breakapartScene } from "../breakapart-svg/scene.ts";
+import { windowsScene } from "../windows-svg/scene.ts";
+import { installCursorField } from "../windows-svg/cursor-field.ts";
 
 export type GalleryEntry = {
   /** Stable id, used in the URL hash for deep-linking. */
@@ -28,6 +30,16 @@ export type GalleryEntry = {
   /** Animation kinds visibly exercised by this scene. */
   kinds: string[];
   scene: Scene;
+  /**
+   * Optional setup hook — called after `controller.setScene(entry.scene)`
+   * each time this entry becomes active. Returns a teardown function that
+   * the gallery invokes before switching to the next entry.
+   *
+   * Use for `onFrame` callbacks, external listeners, anything imperative
+   * that needs to live alongside the declared Scene. The Scene object
+   * itself stays pure data.
+   */
+  setup?: (controller: RendererController) => () => void;
 };
 
 export const galleryScenes: GalleryEntry[] = [
@@ -72,5 +84,19 @@ export const galleryScenes: GalleryEntry[] = [
     blurb: "Per-cell tween: each glyph pixel is an independent entity.",
     kinds: ["tween"],
     scene: breakapartScene,
+  },
+  {
+    id: "windows",
+    label: "Windows",
+    blurb:
+      "Win98-style desktop where every voxel dissolves under the cursor — onFrame field demo.",
+    kinds: ["onFrame"],
+    scene: windowsScene,
+    setup: (controller) =>
+      installCursorField(controller, windowsScene, {
+        radius: 60,
+        maxDisplacement: 4,
+        falloff: "smooth",
+      }),
   },
 ];

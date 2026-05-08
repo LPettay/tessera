@@ -15,6 +15,7 @@ Hand-crafted demo scenes that consume the public Tessera API. Each example is in
 | `landing-svg/` | [`landing-svg/AGENTS.md`](./landing-svg/AGENTS.md) | Stylized voxel-cell landing page — nav, hero T-mark with glow, three feature cards, footer with fading CTA. Demonstrates the README's marketing-hero-as-Scene wedge. |
 | `rhythm-svg/` | [`rhythm-svg/AGENTS.md`](./rhythm-svg/AGENTS.md) | Rhythm-game HUD — lanes, drifting notes, spinning vector receptors, score/combo, groove bar, side avatars, EQ-style visualizer bars. Densest demo; uses every Animation kind. |
 | `breakapart-svg/` | [`breakapart-svg/AGENTS.md`](./breakapart-svg/AGENTS.md) | Canonical `tween` demo — "TESSERA" decomposed into per-cell entities, each flying outward and back via `ease-in-out yoyo tween`. ADR 0020. |
+| `windows-svg/` | [`windows-svg/AGENTS.md`](./windows-svg/AGENTS.md) | Win98-style desktop where every voxel of the UI dissolves under the cursor — first L4 `onFrame` field demo. Uses cell helpers + `composeScene` + `installCursorField`. ADR 0024. |
 
 ### Planned (not yet created)
 
@@ -40,6 +41,7 @@ bun run dev:inventory    # inventory     at http://localhost:3002
 bun run dev:landing      # landing       at http://localhost:3003
 bun run dev:rhythm       # rhythm        at http://localhost:3004
 bun run dev:breakapart   # breakapart    at http://localhost:3005
+bun run dev:windows      # windows       at http://localhost:3007
 ```
 
 Each example registers a top-level script in `package.json` of the form `dev:<example-name>`.
@@ -52,4 +54,4 @@ Each example registers a top-level script in `package.json` of the form `dev:<ex
 
 ---
 
-<!-- last-reviewed: 70957f3 -->
+<!-- last-reviewed: 71d2e2e -->
