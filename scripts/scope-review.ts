@@ -66,7 +66,7 @@ const agentsDocs = touchedTopDirs
 const PROPOSE_ISSUES_TOOL: Anthropic.Tool = {
   name: "propose_issues",
   description:
-    "Propose 2–5 GitHub issues that would concretely improve the codebase based on what this PR changed. Each issue must be specific, actionable, and reference the PR context.",
+    "Propose 2–5 GitHub issues that would concretely improve the codebase based on what this PR changed. Each issue must be specific, actionable, and reference the PR context. Issues are bucketed by scope: story (HX item — what the human experiences) or task (dev implementation item). Features are too large to open from a single PR review — scope individual stories and tasks instead.",
   input_schema: {
     type: "object" as const,
     required: ["issues"],
@@ -77,15 +77,20 @@ const PROPOSE_ISSUES_TOOL: Anthropic.Tool = {
         maxItems: 5,
         items: {
           type: "object",
-          required: ["title", "body", "labels"],
+          required: ["title", "body", "type", "labels"],
           properties: {
             title: {
               type: "string",
-              description: "Concise issue title (under 72 chars). No leading verb like 'Add' unless truly a new feature.",
+              description: "Concise issue title (under 72 chars).",
             },
             body: {
               type: "string",
-              description: "Markdown body. Include: what the issue is, why it matters, and a concrete definition of done. Reference the PR by number.",
+              description: "Markdown body. For stories: lead with the human experience (what the person sees/feels/does), then technical notes. For tasks: lead with what needs implementing and why. Include a definition of done. Reference the PR by number.",
+            },
+            type: {
+              type: "string",
+              enum: ["story", "task"],
+              description: "story = HX item describing what the human experiences. task = dev implementation item. Stories are auto-merged; tasks are auto-merged. Only features require human review — don't file features here.",
             },
             labels: {
               type: "array",
@@ -93,7 +98,7 @@ const PROPOSE_ISSUES_TOOL: Anthropic.Tool = {
                 type: "string",
                 enum: ["enhancement", "bug", "documentation", "tech-debt", "test", "abstraction"],
               },
-              description: "1–2 labels from the allowed set.",
+              description: "1–2 secondary labels from the allowed set, in addition to the type label.",
             },
           },
         },
@@ -119,12 +124,17 @@ Project conventions:
 - Bun runtime; lefthook pre-commit runs check + typecheck
 - Layout invariant tests live alongside components (*.test.ts)
 
+Issue hierarchy:
+- **story** — an HX item. Lead with what the human experiences (sees, feels, does). Dev details are secondary.
+- **task** — a dev implementation item. Specific, bounded, completable in one PR.
+- **feature** — a significant capability composed of many stories + tasks. DO NOT file features from a PR review. File the constituent stories and tasks instead.
+
 Your job: given a merged PR's diff and relevant AGENTS.md context, identify concrete improvements the codebase now needs. Think about:
-1. Missing abstractions — did this PR repeat a pattern that should be a reusable helper or DSL?
-2. Missing tests — are there new invariants with no test coverage?
-3. Documentation gaps — does an ADR need writing, or is an AGENTS.md incomplete?
-4. Follow-up scope — what's the natural "next layer" of work this PR unlocks?
-5. Latent bugs — edge cases or off-by-ones introduced that will bite later?
+1. Missing HX stories — what human experience is now unlocked or unblocked by this PR but not yet built?
+2. Missing abstractions — did this PR repeat a pattern that should be a reusable helper? (task)
+3. Missing tests — are there new invariants with no test coverage? (task)
+4. Documentation gaps — does an ADR need writing, or is an AGENTS.md incomplete? (task)
+5. Latent bugs — edge cases or off-by-ones introduced that will bite later? (task)
 
 Quality bar: propose only issues you are confident are worth doing. Zero issues is better than five weak ones. Each issue must be specific enough that a developer could start it without asking questions.`;
 
@@ -169,7 +179,7 @@ if (!toolUse) {
   process.exit(0);
 }
 
-const { issues } = toolUse.input as { issues: Array<{ title: string; body: string; labels: string[] }> };
+const { issues } = toolUse.input as { issues: Array<{ title: string; body: string; type: string; labels: string[] }> };
 
 console.log(`scope-review: Claude proposed ${issues.length} issue(s)`);
 if (issues.length === 0) {
@@ -183,7 +193,8 @@ const prLink = `\n\n---\n_Opened automatically by scope-review after PR #${PR_NU
 
 for (const issue of issues) {
   const body = issue.body + prLink;
-  const labels = ["scope-review", ...issue.labels].join(",");
+  const typeLabel = `type: ${issue.type}`; // "type: story" or "type: task"
+  const labels = ["scope-review", typeLabel, ...issue.labels].join(",");
 
   // Write body to a temp file to avoid shell-quoting nightmares.
   const tmp = join(tmpdir(), `scope-review-${Date.now()}.md`);
