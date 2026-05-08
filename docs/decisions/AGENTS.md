@@ -32,6 +32,7 @@ Architecture Decision Records (ADRs). One markdown file per structural decision.
 | `0021-voxel-cell-as-atom.md` | Tessera's atom is the 2D voxel-cell — load-bearing framing ADR; defines the L0–L5 abstraction stack future ADRs reference (Accepted) |
 | `0022-cell-drawing-helpers.md` | L1 drawing helpers — `rect` / `grid` / `outline` / `gradient` / `lerpColor` pure functions returning `VoxelSpriteCell[]` (Accepted) |
 | `0023-scene-fragments-and-composition.md` | L2 scene fragments + `composeScene` — components return `Layer[]`, merged by id with first-wins on config (Accepted) |
+| `0024-onframe-hook.md` | L4 `onFrame` interactivity hook — per-frame callback with cursor + per-entity offset writes; additive on top of declared `Animation`s (Accepted) |
 
 When you add an ADR, add a row above and bump the number sequentially.
 
@@ -62,4 +63,4 @@ When you add an ADR, add a row above and bump the number sequentially.
 
 ---
 
-<!-- last-reviewed: 5a18bb0 -->
+<!-- last-reviewed: 99be9bf -->

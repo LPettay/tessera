@@ -9,8 +9,8 @@ Engine core. **Vanilla TypeScript, zero runtime dependencies, no React, no DOM-o
 | File | Purpose |
 |---|---|
 | `scene.ts` | Scene description language — `Scene`, `Layer`, `Cell`, `Entity`, `EntityShape` (incl. `TextShape`), `VoxelSpriteCell`, `Animation`. Pure data types, no behavior. |
-| `renderer.ts` | Renderer contract — `Renderer`, `RendererCapabilities`, `RendererController`, `RendererTier`. The interface every renderer tier implements. |
-| `page-citizenship.ts` | `withPageCitizenship(inner, container)` — wraps a `RendererController` so it auto-pauses on IntersectionObserver / `visibilitychange` / `prefers-reduced-motion`. See ADR 0010. |
+| `renderer.ts` | Renderer contract — `Renderer`, `RendererCapabilities`, `RendererController`, `RendererTier`. Includes `onFrame` / `setCursor` interactivity hook + `FrameCallback` / `FrameContext` types (ADR 0024). The interface every renderer tier implements. |
+| `page-citizenship.ts` | `withPageCitizenship(inner, container)` — wraps a `RendererController` so it auto-pauses on IntersectionObserver / `visibilitychange` / `prefers-reduced-motion`; passes through `onFrame`/`setCursor`. See ADR 0010, 0024. |
 | `generator.ts` | `BackgroundGenerator<Config>` primitive — pure function `(config, geometry) → { cells, entities }` for hand-crafted layer-fill templates. See ADR 0013. |
 | `text.ts` | Built-in 5×7 fixed-width ASCII bitmap font + `rasterizeText`/`measureText` helpers. Public API since ADR 0020 — scene authors decompose text into per-cell entities. See ADR 0018, 0019. |
 | `draw.ts` | L1 cell drawing helpers — `rect` / `grid` / `outline` / `gradient` / `lerpColor`. Pure functions returning `VoxelSpriteCell[]`. See ADR 0022. |
@@ -42,4 +42,4 @@ Tests for `src/core/` must run in Node without a DOM. If a test needs DOM, the c
 
 ---
 
-<!-- last-reviewed: 5a18bb0 -->
+<!-- last-reviewed: 99be9bf -->
