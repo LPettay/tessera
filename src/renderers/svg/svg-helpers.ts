@@ -8,6 +8,7 @@ import type {
   OscillateAnimation,
   PulseAnimation,
   SpinAnimation,
+  TweenAnimation,
   VectorSegment,
   VoxelSpriteCell,
 } from "../../core/scene.ts";
@@ -117,6 +118,9 @@ function applyVoxelAnimation(e: VoxelEntityRuntime, elapsed: number): void {
     case "drift":
       applyDrift(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
       return;
+    case "tween":
+      applyTween(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
+      return;
   }
 }
 
@@ -190,6 +194,49 @@ function applyDrift(
   group.style.transform = `${baseTransform} translate(${dx}px, ${dy}px)`;
 }
 
+/** Cubic easing functions used by `tween`. */
+function easingT(t: number, fn: TweenAnimation["easing"]): number {
+  switch (fn) {
+    case "linear":
+      return t;
+    case "ease-in":
+      return t * t * t;
+    case "ease-out": {
+      const u = 1 - t;
+      return 1 - u * u * u;
+    }
+    case "ease-in-out":
+    default:
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+}
+
+function applyTween(
+  group: SVGGElement,
+  baseTransform: string,
+  anim: TweenAnimation,
+  elapsed: number,
+  cellSize: number,
+): void {
+  const fullCycle = (anim.yoyo ? 2 : 1) * anim.durationMs;
+  const phase = elapsed % fullCycle;
+
+  let rawT: number;
+  if (anim.yoyo) {
+    rawT =
+      phase < anim.durationMs
+        ? phase / anim.durationMs
+        : 1 - (phase - anim.durationMs) / anim.durationMs;
+  } else {
+    rawT = Math.min(1, phase / anim.durationMs);
+  }
+
+  const t = easingT(rawT, anim.easing);
+  const dx = anim.dx * t * cellSize;
+  const dy = anim.dy * t * cellSize;
+  group.style.transform = `${baseTransform} translate(${dx}px, ${dy}px)`;
+}
+
 function applyVectorAnimation(e: VectorEntityRuntime, elapsed: number): void {
   // Rotation kinds rasterize per-frame (segments rotated → cells stamped).
   // Non-rotation kinds (pulse/bob/fade/drift) leave the rasterized cells
@@ -213,6 +260,9 @@ function applyVectorAnimation(e: VectorEntityRuntime, elapsed: number): void {
       return;
     case "drift":
       applyDrift(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
+      return;
+    case "tween":
+      applyTween(e.group, e.baseTransform, e.animation, elapsed, e.cellSize);
       return;
   }
 }
@@ -242,6 +292,18 @@ export function applyNeutral(e: EntityRuntime): void {
       return;
     case "fade":
       e.group.style.opacity = String(e.animation.from);
+      return;
+    case "tween":
+      if (e.animation.yoyo) {
+        // Yoyo ends back at origin.
+        e.group.style.transform = e.baseTransform;
+      } else {
+        // Non-yoyo ends at the target offset.
+        const cellSize = e.cellSize;
+        const dx = e.animation.dx * cellSize;
+        const dy = e.animation.dy * cellSize;
+        e.group.style.transform = `${e.baseTransform} translate(${dx}px, ${dy}px)`;
+      }
       return;
   }
 }
@@ -413,6 +475,8 @@ export function periodLimitFor(animation: Animation): number | null {
     case "drift":
       // Continuous translation has no period; runs forever.
       return null;
+    case "tween":
+      return animation.repeat === "infinite" ? null : animation.repeat;
   }
 }
 
@@ -437,6 +501,11 @@ export function isPeriodComplete(
       // Drift's periodLimit is always null, so this branch is unreachable in
       // practice. Return false defensively.
       return false;
+    case "tween": {
+      // One repeat = one full cycle. A yoyo cycle is 2 × durationMs.
+      const cycleDuration = (animation.yoyo ? 2 : 1) * animation.durationMs;
+      return elapsed / cycleDuration >= periodLimit;
+    }
   }
 }
 

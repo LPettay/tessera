@@ -5,6 +5,8 @@ Cell
 DriftAnimation
 Entity
 EntityShape
+FONT_HEIGHT
+FONT_WIDTH
 FadeAnimation
 GeneratorGeometry
 GeneratorOutput
@@ -20,9 +22,12 @@ Scene
 SpinAnimation
 SunburstConfig
 TextShape
+TweenAnimation
 VectorSegment
 VoxelSpriteCell
 WedgeSegment
+measureText
+rasterizeText
 sunburstGenerator
 svgRenderer
 withPageCitizenship
