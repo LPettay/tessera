@@ -38,6 +38,9 @@ export { FONT_WIDTH, FONT_HEIGHT } from "./core/text.ts";
 
 export { rect, grid, outline, gradient, lerpColor } from "./core/draw.ts";
 
+export { composeScene } from "./core/compose.ts";
+export type { SceneFragment } from "./core/compose.ts";
+
 export type {
   Renderer,
   RendererCapabilities,
