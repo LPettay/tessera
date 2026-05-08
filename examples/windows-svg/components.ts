@@ -27,7 +27,8 @@
  */
 
 import type { Entity, Layer, SceneFragment, VoxelSpriteCell } from "../../src/index.ts";
-import { gradient, grid, outline, rasterizeText, rect } from "../../src/index.ts";
+import { gradient, grid, measureText, outline, rasterizeText, rect } from "../../src/index.ts";
+import type { LayerDims } from "./theme.ts";
 import {
   BIN_GRAY,
   CHROME_DARK,
@@ -40,13 +41,17 @@ import {
   ICON_OUTLINE,
   LAYER_DIMS,
   SCREEN_BLUE,
+  START_BUTTON_W,
   TASKBAR_HEIGHT,
+  TASKBAR_TEXT_SCALE,
   TEXT_DARK,
   TEXT_LIGHT,
   TITLEBAR_HEIGHT,
   TITLE_BLUE_DARK,
   TITLE_BLUE_LIGHT,
+  TITLE_SCALE,
   TITLE_TEXT,
+  TRAY_W,
 } from "./theme.ts";
 
 // --- Helpers ------------------------------------------------------------ //
@@ -118,13 +123,13 @@ function raisedBevel(
   return out;
 }
 
-/** Empty fragment matching the canonical "ui" layer config. */
-function emptyUiLayer(extras: Partial<Layer> = {}): Layer {
+/** Empty fragment for the "ui" layer, using the supplied (or default) dims. */
+function emptyUiLayer(dims: LayerDims, extras: Partial<Layer> = {}): Layer {
   return {
-    id: LAYER_DIMS.id,
-    cellSize: LAYER_DIMS.cellSize,
-    width: LAYER_DIMS.width,
-    height: LAYER_DIMS.height,
+    id: dims.id,
+    cellSize: dims.cellSize,
+    width: dims.width,
+    height: dims.height,
     entities: [],
     zIndex: 0,
     opacity: 1,
@@ -147,21 +152,26 @@ function emptyUiLayer(extras: Partial<Layer> = {}): Layer {
 export function desktopBackground(opts: {
   width?: number;
   height?: number;
+  cellSize?: number;
 } = {}): SceneFragment {
-  const w = opts.width ?? LAYER_DIMS.width;
-  const h = opts.height ?? LAYER_DIMS.height;
+  const dims: LayerDims = {
+    id: LAYER_DIMS.id,
+    cellSize: opts.cellSize ?? LAYER_DIMS.cellSize,
+    width: opts.width ?? LAYER_DIMS.width,
+    height: opts.height ?? LAYER_DIMS.height,
+  };
 
   const bgEntity: Entity = {
     id: "desktop.bg",
     position: { x: 0, y: 0 },
     shape: {
       kind: "voxel-sprite",
-      cells: rect(0, 0, w, h, DESKTOP_TEAL),
+      cells: rect(0, 0, dims.width, dims.height, DESKTOP_TEAL),
       pivot: { x: 0, y: 0 },
     },
   };
 
-  return [emptyUiLayer({ entities: [bgEntity] })];
+  return [emptyUiLayer(dims, { entities: [bgEntity] })];
 }
 
 // --- taskbar ------------------------------------------------------------ //
@@ -179,39 +189,44 @@ export function taskbar(opts: {
   height?: number;
   y?: number;
   clockText?: string;
+  dims?: LayerDims;
 }): SceneFragment {
   const idPrefix = opts.idPrefix;
-  const w = opts.width ?? LAYER_DIMS.width;
+  const dims = opts.dims ?? LAYER_DIMS;
+  const w = opts.width ?? dims.width;
   const h = opts.height ?? TASKBAR_HEIGHT;
-  const y = opts.y ?? LAYER_DIMS.height - h;
+  const y = opts.y ?? dims.height - h;
   const clockText = opts.clockText ?? "10:24 AM";
 
   // 1) Face (grid, addressable).
   const face = grid(0, y, w, h, CHROME_FACE);
 
-  // 2) Bevel (top highlight + bottom dark line — bottom is page edge so
-  //    skip the dark ring on bottom; emulate just the top raised edge).
+  // 2) Top raised edge — single highlight row across the full width.
   const bevel: VoxelSpriteCell[] = [];
   for (let dx = 0; dx < w; dx++) {
     bevel.push({ x: dx, y, fill: CHROME_HIGHLIGHT });
   }
 
-  // 3) START button — small raised rectangle, ~16 cells wide.
+  // 3) START button.
   const startX = 2;
   const startY = y + 2;
-  const startW = 18;
+  const startW = START_BUTTON_W;
   const startH = h - 4;
-  const startBevel = raisedBevel(startX, startY, startW, startH);
+  // Face first, bevel on top so highlight/shadow aren't overpainted.
   const startFace = grid(startX + 1, startY + 1, startW - 2, startH - 2, CHROME_FACE);
+  const startBevel = raisedBevel(startX, startY, startW, startH);
+  const startLabelM = measureText({ text: "START", scale: TASKBAR_TEXT_SCALE });
+  // Vertically center within the full button height (text overpaints bevel edges).
+  const startLabelY = startY + (startH - startLabelM.height) / 2;
   const startLabel = rasterizeText({
     kind: "text",
     text: "START",
     fill: TEXT_DARK,
-    scale: 0.6,
+    scale: TASKBAR_TEXT_SCALE,
   }).map((cell) => ({
     ...cell,
     x: cell.x + startX + 4,
-    y: cell.y + startY + 1.5,
+    y: cell.y + startLabelY,
   }));
   // Tiny yellow flag block to fake the Win98 logo.
   const flag: VoxelSpriteCell[] = [
@@ -222,39 +237,40 @@ export function taskbar(opts: {
   ];
 
   // 4) System tray on the right — sunken bevel + clock text.
-  const trayW = 32;
   const trayH = h - 4;
-  const trayX = w - trayW - 2;
+  const trayX = w - TRAY_W - 2;
   const trayY = y + 2;
+  // Face first, bevel (shadow outline) on top.
+  const trayFace = grid(trayX + 1, trayY + 1, TRAY_W - 2, trayH - 2, CHROME_FACE);
   const trayBevel: VoxelSpriteCell[] = [
-    ...outline(trayX, trayY, trayW, trayH, CHROME_SHADOW, 1),
-    // Sunken inner: highlight on bottom-right.
+    ...outline(trayX, trayY, TRAY_W, trayH, CHROME_SHADOW, 1),
   ];
-  const trayFace = grid(trayX + 1, trayY + 1, trayW - 2, trayH - 2, CHROME_FACE);
+  const clockM = measureText({ text: clockText, scale: TASKBAR_TEXT_SCALE });
+  const clockLabelY = trayY + 1 + Math.max(0, (trayH - 2 - clockM.height) / 2);
   const clockCells = rasterizeText({
     kind: "text",
     text: clockText,
     fill: TEXT_DARK,
-    scale: 0.6,
+    scale: TASKBAR_TEXT_SCALE,
   }).map((cell) => ({
     ...cell,
     x: cell.x + trayX + 3,
-    y: cell.y + trayY + 1.5,
+    y: cell.y + clockLabelY,
   }));
 
   const allCells: VoxelSpriteCell[] = [
     ...face,
     ...bevel,
-    ...startBevel,
     ...startFace,
+    ...startBevel,
     ...flag,
     ...startLabel,
-    ...trayBevel,
     ...trayFace,
+    ...trayBevel,
     ...clockCells,
   ];
 
-  return [emptyUiLayer({ entities: entitiesFromCells(idPrefix, "taskbar", allCells) })];
+  return [emptyUiLayer(dims, { entities: entitiesFromCells(idPrefix, "taskbar", allCells) })];
 }
 
 // --- windowChrome ------------------------------------------------------- //
@@ -275,8 +291,10 @@ export function windowChrome(opts: {
   h: number;
   title: string;
   bodyText?: string;
+  dims?: LayerDims;
 }): SceneFragment {
   const { idPrefix, x, y, w, h, title } = opts;
+  const dims = opts.dims ?? LAYER_DIMS;
   const titleH = TITLEBAR_HEIGHT;
 
   // 1) Outer raised bevel for the whole window frame.
@@ -304,16 +322,18 @@ export function windowChrome(opts: {
     "horizontal",
   );
 
-  // 4) Title text — left-aligned, vertically centered in the title bar.
+  // 4) Title text — left-aligned, vertically centered in the gradient region.
+  const titleTextM = measureText({ text: title, scale: TITLE_SCALE });
+  const titleTextOffsetY = (titleBarH - titleTextM.height) / 2;
   const titleCells = rasterizeText({
     kind: "text",
     text: title,
     fill: TITLE_TEXT,
-    scale: 0.6,
+    scale: TITLE_SCALE,
   }).map((cell) => ({
     ...cell,
     x: cell.x + titleX + 1,
-    y: cell.y + titleY + 0.5,
+    y: cell.y + titleY + titleTextOffsetY,
   }));
 
   // 5) Close-button area on the right of the title bar — small gray square
@@ -357,7 +377,7 @@ export function windowChrome(opts: {
     ...bodyTextCells,
   ];
 
-  return [emptyUiLayer({ entities: entitiesFromCells(idPrefix, "chrome", allCells) })];
+  return [emptyUiLayer(dims, { entities: entitiesFromCells(idPrefix, "chrome", allCells) })];
 }
 
 // --- desktopIcon -------------------------------------------------------- //
@@ -380,8 +400,10 @@ export function desktopIcon(opts: {
   kind?: IconKind;
   /** Override the default fill for the icon body (folder front, etc.). */
   color?: string;
+  dims?: LayerDims;
 }): SceneFragment {
   const { idPrefix, x, y, label } = opts;
+  const dims = opts.dims ?? LAYER_DIMS;
   const kind: IconKind = opts.kind ?? "folder";
 
   const iconCells = drawIcon(kind, x, y, opts.color);
@@ -406,7 +428,7 @@ export function desktopIcon(opts: {
 
   const allCells: VoxelSpriteCell[] = [...iconCells, ...placedLabel];
 
-  return [emptyUiLayer({ entities: entitiesFromCells(idPrefix, "icon", allCells) })];
+  return [emptyUiLayer(dims, { entities: entitiesFromCells(idPrefix, "icon", allCells) })];
 }
 
 /** Approximate post-scale width in cells of a one-line ASCII label. */

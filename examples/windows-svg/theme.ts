@@ -64,19 +64,49 @@ export const TEXT_LIGHT = "#ffffff";
 // --- Dimensions --------------------------------------------------------- //
 
 /**
+ * Shape of the layer geometry object passed through the component tree.
+ * Callers can supply any dimensions; `LAYER_DIMS` is the 800×480 default.
+ */
+export type LayerDims = {
+  id: string;
+  cellSize: number;
+  width: number;
+  height: number;
+};
+
+/**
  * The single layer's geometry. 200×120 cells × 4 px = 800×480 viewBox —
  * dense enough that a window title bar is ~5 cells tall and the cells
  * themselves are visibly square in the browser.
  */
-export const LAYER_DIMS = {
+export const LAYER_DIMS: LayerDims = {
   id: "ui",
   cellSize: 4,
   width: 200,
   height: 120,
-} as const;
+};
 
 /** Taskbar height in cells. ~10 cells reads as a chunky Win98 bar at our density. */
 export const TASKBAR_HEIGHT = 10;
 
-/** Title-bar height in cells. */
-export const TITLEBAR_HEIGHT = 5;
+/**
+ * Title-bar height in cells.
+ *
+ * The raisedBevel eats 1 row top (outer dark) + 1 row inner (highlight) and
+ * the same at the bottom, leaving `titleH - 2` rows for the gradient region.
+ * At scale 0.6, rasterizeText produces glyphs 4.2 cells tall, so
+ * titleH - 2 ≥ 5 is required (≥ ceil(4.2) + 1 for breathing room).
+ * 7 satisfies this: gradient region = 5 cells, text = 4.2. ← enforce in test.
+ */
+export const TITLEBAR_HEIGHT = 7;
+
+// --- Layout constants referenced by component tests --------------------- //
+
+/** START button total width in cells (face = START_BUTTON_W - 2). */
+export const START_BUTTON_W = 24;
+/** System-tray total width in cells (face = TRAY_W - 2). */
+export const TRAY_W = 34;
+/** Scale used for WIN98 title-bar text. */
+export const TITLE_SCALE = 0.6;
+/** Scale used for taskbar labels (START, clock). */
+export const TASKBAR_TEXT_SCALE = 0.5;

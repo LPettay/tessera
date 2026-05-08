@@ -1,10 +1,9 @@
 # AGENTS.md — `examples/windows-svg/`
 
 Win98-style desktop scene composed from L1 cell helpers (`rect`, `grid`,
-`outline`, `gradient`) and L2 component fragments (`composeScene`). The
-goal is a **recognizable Windows 98 silhouette** built from voxel cells —
-the cursor-driven repulsion field is a separate agent's job and lands on
-top of this scene without rewriting it.
+`outline`, `gradient`) and L2 component fragments (`composeScene`), with
+cursor-driven voxel repulsion via L4 `onFrame`. The scene is fully
+dynamic-resolution: `buildWindowsScene(dims?)` adapts to any viewport.
 
 ## Index
 
@@ -12,10 +11,12 @@ top of this scene without rewriting it.
 
 | File | Purpose |
 |---|---|
-| `theme.ts` | Win98 palette + dimension constants. Each token names the *role* (e.g. `CHROME_HIGHLIGHT`), not the raw color. |
-| `components.ts` | Pure component functions returning `SceneFragment` — `desktopBackground`, `taskbar`, `windowChrome`, `desktopIcon`. |
-| `scene.ts` | Top-level `windowsScene: Scene` composed via `composeScene(...)` from the components above. |
-| `main.ts` | Browser entry — mounts `svgRenderer` on `#scene`, wraps with `withPageCitizenship`. |
+| `theme.ts` | Win98 palette + layout constants (`TITLEBAR_HEIGHT`, `START_BUTTON_W`, `TRAY_W`, `TITLE_SCALE`, `TASKBAR_TEXT_SCALE`). |
+| `components.ts` | Pure component functions returning `SceneFragment` — `desktopBackground`, `taskbar`, `windowChrome`, `desktopIcon`. All accept `dims?: LayerDims`. |
+| `components.test.ts` | Layout invariant tests — asserts every text placement fits its container at the configured scale. Run with `bun test`. |
+| `scene.ts` | `buildWindowsScene(dims?)` builder + static `windowsScene` export for gallery compat. |
+| `cursor-field.ts` | `installCursorField` — registers an `onFrame` callback that repels every entity from the cursor. |
+| `main.ts` | Browser entry — computes dims from container, builds scene, installs cursor field. |
 | `index.html` | Static page. Teal (`#008080`) page background. |
 | `dev.ts` | `Bun.serve` dev server on port 3007. Run via `bun run dev:windows`. |
 | `build.ts` | Static build → `dist/windows/`. Run via `bun run build:windows`. |
@@ -23,12 +24,14 @@ top of this scene without rewriting it.
 ## Rules
 
 - **Imports from `../../src/index.ts` only.** No reaching into `src/core/`.
-- **One layer.** Everything contributes to the layer named `"ui"` with
-  `cellSize: 4`, `width: 200`, `height: 120`. The first fragment in
-  `composeScene` (the desktop background) establishes layer config —
-  later fragments only contribute entities.
-- **No animations on this scene.** Motion comes from a future cursor
-  field. Any `Animation` declared here is a regression.
+- **One layer.** Everything contributes to the layer named `"ui"`. The
+  first fragment (`desktopBackground`) establishes `cellSize/width/height`
+  — all other fragments just contribute entities (first-wins per ADR 0023).
+  Default dims: `cellSize: 4`, `width: 200`, `height: 120`; `main.ts`
+  overrides with viewport-derived values.
+- **No declared animations.** Motion comes from the cursor field's
+  `onFrame` callback via `setOffset`. Any `Animation` on a scene entity
+  is a regression.
 - **Cursor-reactive components decompose into single-cell entities.**
   `taskbar`, `windowChrome`, and `desktopIcon` use `grid()` (not `rect()`)
   for their bodies and wrap each cell in its own `Entity` so the cursor
@@ -44,11 +47,14 @@ top of this scene without rewriting it.
 bun run dev:windows
 # open http://localhost:3007
 # expected:
-#   - teal desktop background fills the viewport
+#   - teal desktop fills full viewport (no letterbox/clipping)
 #   - three icons stacked top-left: MY PC, RECYCLE, NOTEPAD
-#   - two overlapping windows mid-screen with blue gradient title bars
-#   - bottom taskbar with raised START button + clock in tray
-#   - no motion (cursor field is a separate agent's task)
+#   - two overlapping windows with blue gradient title bars — titles fit
+#   - START button label fits inside button; clock fits in tray
+#   - moving the cursor: every nearby voxel flies outward (smoothstep)
+
+bun test examples/windows-svg/components.test.ts
+# 9 layout invariant tests — all must pass
 ```
 
 Type-check:
@@ -57,19 +63,30 @@ Type-check:
 bun run typecheck
 ```
 
+## Layout invariants (enforced by `components.test.ts`)
+
+Every text placement has a container. The test file asserts:
+
+| Text | Scale | Container |
+|---|---|---|
+| START label | `TASKBAR_TEXT_SCALE` (0.5) | button face minus flag offset |
+| Clock "10:24 AM" | `TASKBAR_TEXT_SCALE` (0.5) | tray face |
+| Window title | `TITLE_SCALE` (0.6) | `titleBarH = TITLEBAR_HEIGHT - 2` cells |
+
+If you change any scale or dimension constant, run the tests first.
+
 ## What's intentionally missing
 
-- **Cursor-driven repulsion.** Lands separately as an `onFrame` /
-  `Field`-style integration. This scene is the static substrate.
 - **Working buttons / interactive close.** The close button is purely
   visual — entity-level click handling is not yet a primitive.
-- **Sunken-bevel inputs.** Only the raised bevel is implemented (taskbar
-  + window frame + START button). Sunken input boxes (text fields, list
-  views) would invert the highlight/shadow placement; not needed for v1.
+- **Sunken-bevel inputs.** Only the raised bevel is implemented. Sunken
+  input boxes (text fields, list views) invert highlight/shadow — not
+  needed for v1.
 - **Diagonal title-bar gradient.** ADR 0022 ships horizontal/vertical
-  only; the demo accepts the horizontal title-bar gradient as
-  good-enough Win98 silhouette.
+  only; horizontal is good-enough Win98 silhouette.
+- **Resize handling.** `main.ts` computes dims once at mount. Viewport
+  resize does not rebuild the scene.
 
 ---
 
-<!-- last-reviewed: 71d2e2e -->
+<!-- last-reviewed: 42b2d58 -->
