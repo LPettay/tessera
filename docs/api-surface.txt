@@ -19,6 +19,7 @@ RendererCapabilities
 RendererController
 RendererTier
 Scene
+SceneFragment
 SpinAnimation
 SunburstConfig
 TextShape
@@ -26,6 +27,7 @@ TweenAnimation
 VectorSegment
 VoxelSpriteCell
 WedgeSegment
+composeScene
 gradient
 grid
 lerpColor
