@@ -35,7 +35,7 @@ if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
 // Track the active entry's setup teardown so we can dispose it before
 // switching scenes (cursor fields, onFrame callbacks, etc.).
-let teardown: (() => void) | null = initial.setup ? initial.setup(controller) : null;
+let teardown: (() => void) | null = initial.setup ? initial.setup(controller, initial.scene) : null;
 
 // --- Build the nav strip ---------------------------------------------- //
 
@@ -81,7 +81,7 @@ function activate(idx: number): void {
   // setScene replaces the inner <svg>; reapply the crop attribute.
   const next = container.querySelector("svg");
   if (next) next.setAttribute("preserveAspectRatio", "xMidYMid slice");
-  if (entry.setup) teardown = entry.setup(controller);
+  if (entry.setup) teardown = entry.setup(controller, entry.scene);
   applyChrome(idx);
 }
 
