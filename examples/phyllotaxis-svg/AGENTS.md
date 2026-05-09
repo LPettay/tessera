@@ -46,4 +46,4 @@ keyed off each dot's index, and moving the cursor parts the spiral.
 
 ---
 
-<!-- last-reviewed: 12eb28d -->
+<!-- last-reviewed: a0bb836 -->
