@@ -1,5 +1,5 @@
 import { svgRenderer, withPageCitizenship } from "../../src/index.ts";
-import { installCursorField } from "../windows-svg/cursor-field.ts";
+import { installIdleField } from "./idle-field.ts";
 import { buildPhyllotaxisScene, CELL_SIZE } from "./scene.ts";
 
 const container = document.getElementById("scene");
@@ -16,10 +16,13 @@ const scene = buildPhyllotaxisScene({ width, height });
 const inner = svgRenderer.mount(container, scene);
 const controller = withPageCitizenship(inner, container);
 
-installCursorField(controller, scene, {
-  radius: 80,
-  maxDisplacement: 6,
-  falloff: "smooth",
+// Idle breathing + cursor repulsion in one onFrame hook — `setOffset`
+// REPLACES per-entity offsets each frame, so the two displacements are
+// summed at the call site (see idle-field.ts for the full rationale).
+installIdleField(controller, scene, {
+  cursorRadius: 80,
+  cursorMaxDisplacement: 6,
+  cursorFalloff: "smooth",
 });
 
 (globalThis as { __tessera?: unknown }).__tessera = controller;

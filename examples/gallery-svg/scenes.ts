@@ -40,7 +40,7 @@ export type GalleryEntry = {
    * that needs to live alongside the declared Scene. The Scene object
    * itself stays pure data.
    */
-  setup?: (controller: RendererController) => () => void;
+  setup?: (controller: RendererController, scene: Scene) => () => void;
 };
 
 export const galleryScenes: GalleryEntry[] = [
@@ -108,13 +108,11 @@ export const galleryScenes: GalleryEntry[] = [
     kinds: ["onFrame"],
     // Build at gallery's default 120×68 grid so the scene is pre-composed.
     scene: buildPhyllotaxisScene({ width: 120, height: 68 }),
-    setup: (controller) => {
-      const scene = buildPhyllotaxisScene({ width: 120, height: 68 });
-      return installCursorField(controller, scene, {
+    setup: (controller, scene) =>
+      installCursorField(controller, scene, {
         radius: 80,
         maxDisplacement: 6,
         falloff: "smooth",
-      });
-    },
+      }),
   },
 ];

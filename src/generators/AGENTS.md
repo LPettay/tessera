@@ -9,6 +9,7 @@ Hand-crafted `BackgroundGenerator` implementations. Each generator is its own su
 | Dir | AGENTS.md | Purpose |
 |---|---|---|
 | `sunburst/` | [`sunburst/AGENTS.md`](./sunburst/AGENTS.md) | Quantized radial gradient + rotating vector-ray overlay. v0.2.0 first concrete generator. |
+| `phyllotaxis/` | [`phyllotaxis/AGENTS.md`](./phyllotaxis/AGENTS.md) | Golden-angle spiral — sunflower/pinecone packing as a math-driven dot field over a flat background. ADR 0026. |
 
 ### Planned (not yet created)
 
@@ -34,4 +35,4 @@ Hand-crafted `BackgroundGenerator` implementations. Each generator is its own su
 
 ---
 
-<!-- last-reviewed: 8fdbcef -->
+<!-- last-reviewed: 3d559e2 -->

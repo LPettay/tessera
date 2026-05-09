@@ -1,8 +1,9 @@
 # examples/phyllotaxis-svg — Agent Guide
 
-**Purpose:** Demonstrate `phyllotaxisGenerator` with a cursor-repulsion field.
-Every dot in the scene is placed by the golden-angle formula; moving the cursor
-parts the spiral.
+**Purpose:** Demonstrate `phyllotaxisGenerator` with a living idle animation
+and a cursor-repulsion field. Every dot in the scene is placed by the
+golden-angle formula; on load the spiral breathes radially in a slow wave
+keyed off each dot's index, and moving the cursor parts the spiral.
 
 **Stamp:** <!-- STAMP:PLACEHOLDER -->
 
@@ -14,7 +15,8 @@ parts the spiral.
 |------|------|
 | `index.html` | Page shell — dark background, brand label, hint text |
 | `scene.ts` | Builds the `Scene` via `phyllotaxisGenerator`; exports `CELL_SIZE` and `buildPhyllotaxisScene(dims)` |
-| `main.ts` | Mounts renderer, computes dims from container, installs cursor field |
+| `idle-field.ts` | Combined idle breathing + cursor repulsion in a single `onFrame` hook (composes `setOffset`-replacing displacements) |
+| `main.ts` | Mounts renderer, computes dims from container, installs the idle field |
 | `dev.ts` | Bun dev server on port 3008 |
 | `build.ts` | Static bundle → `dist/phyllotaxis/` |
 
@@ -38,7 +40,10 @@ parts the spiral.
 2. No hard-coded width/height in `scene.ts` — always accept `Dims`.
 3. Cursor field radius and maxDisplacement are the tuning knobs; keep them in
    `main.ts`, not `scene.ts`.
+4. Idle breathing and cursor repulsion MUST be summed in a single `onFrame`
+   hook — `setOffset` REPLACES per-entity offsets each frame, so two
+   independent hooks cannot compose.
 
 ---
 
-<!-- last-reviewed: 12eb28d -->
+<!-- last-reviewed: a0bb836 -->
