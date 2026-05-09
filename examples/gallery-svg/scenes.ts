@@ -18,6 +18,7 @@ import { landingScene } from "../landing-svg/scene.ts";
 import { rhythmScene } from "../rhythm-svg/scene.ts";
 import { breakapartScene } from "../breakapart-svg/scene.ts";
 import { windowsScene } from "../windows-svg/scene.ts";
+import { buildPhyllotaxisScene } from "../phyllotaxis-svg/scene.ts";
 import { installCursorField } from "../windows-svg/cursor-field.ts";
 
 export type GalleryEntry = {
@@ -98,5 +99,22 @@ export const galleryScenes: GalleryEntry[] = [
         maxDisplacement: 4,
         falloff: "smooth",
       }),
+  },
+  {
+    id: "phyllotaxis",
+    label: "Phyllotaxis",
+    blurb:
+      "Golden-angle spiral — the same pattern nature uses in sunflowers. Every dot placed by mathematics.",
+    kinds: ["onFrame"],
+    // Build at gallery's default 120×68 grid so the scene is pre-composed.
+    scene: buildPhyllotaxisScene({ width: 120, height: 68 }),
+    setup: (controller) => {
+      const scene = buildPhyllotaxisScene({ width: 120, height: 68 });
+      return installCursorField(controller, scene, {
+        radius: 80,
+        maxDisplacement: 6,
+        falloff: "smooth",
+      });
+    },
   },
 ];
