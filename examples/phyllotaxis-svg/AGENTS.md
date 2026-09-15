@@ -5,8 +5,6 @@ and a cursor-repulsion field. Every dot in the scene is placed by the
 golden-angle formula; on load the spiral breathes radially in a slow wave
 keyed off each dot's index, and moving the cursor parts the spiral.
 
-**Stamp:** <!-- STAMP:PLACEHOLDER -->
-
 ---
 
 ## File map
@@ -46,4 +44,4 @@ keyed off each dot's index, and moving the cursor parts the spiral.
 
 ---
 
-<!-- last-reviewed: a0bb836 -->
+<!-- last-reviewed: 631a9fb -->
