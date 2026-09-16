@@ -9,7 +9,7 @@ name: scope-review
 on:
   pull_request:
     types: [closed]
-    branches: [main]
+    branches: [main, development]
 
 jobs:
   review:
